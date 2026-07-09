@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import NumberPad from './components/NumberPad.vue'
 import PlayerBoard from './components/PlayerBoard.vue'
 import SetupScreen from './components/SetupScreen.vue'
@@ -30,6 +30,22 @@ function placeLabel(i: number): string {
   return PLACE_LABELS[i] ?? `${i + 1}th`
 }
 
+// Guard the reset: skip the prompt once the game is over (nothing left to lose).
+const confirmingNewGame = ref(false)
+
+function requestNewGame() {
+  if (isGameOver.value) {
+    backToSetup()
+  } else {
+    confirmingNewGame.value = true
+  }
+}
+
+function confirmNewGame() {
+  backToSetup()
+  confirmingNewGame.value = false
+}
+
 const outModeLabel = computed(() => (options.value.outMode === 'double' ? 'double out' : 'single out'))
 
 const justFinishedName = computed(() =>
@@ -47,7 +63,7 @@ const justFinishedPlace = computed(() =>
     <header class="topbar">
       <h1>🎯 {{ options.startScore }}</h1>
       <span class="subtitle">{{ options.startScore }} down · {{ outModeLabel }} · 3 darts</span>
-      <button class="ghost-btn" @click="backToSetup">New Game</button>
+      <button class="ghost-btn" @click="requestNewGame">New Game</button>
     </header>
 
     <section class="board-area">
@@ -93,7 +109,19 @@ const justFinishedPlace = computed(() =>
         <div class="modal-actions">
           <button v-if="!isGameOver" class="primary" @click="continuePlaying">Continue Playing</button>
           <button class="secondary" :disabled="!canUndo" @click="undo">↺ Undo last throw</button>
-          <button class="secondary" @click="backToSetup">New Game</button>
+          <button class="secondary" @click="requestNewGame">New Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm before discarding an in-progress game -->
+    <div v-if="confirmingNewGame" class="overlay confirm-overlay">
+      <div class="modal">
+        <div class="modal-title">Start a new game?</div>
+        <p class="modal-sub">The current match will be lost.</p>
+        <div class="modal-actions">
+          <button class="primary" @click="confirmNewGame">New Game</button>
+          <button class="secondary" @click="confirmingNewGame = false">Cancel</button>
         </div>
       </div>
     </div>
@@ -169,6 +197,11 @@ h1 {
   align-items: center;
   justify-content: center;
   padding: 32px;
+}
+
+/* Confirm dialog stacks above the result overlay on a mid-game finish. */
+.confirm-overlay {
+  z-index: 10;
 }
 
 .modal {
