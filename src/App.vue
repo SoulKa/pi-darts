@@ -172,9 +172,10 @@ h1 {
   border-radius: 12px;
   background: transparent;
   color: #cbd5e1;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
-  padding: 9px 16px;
+  padding: 14px 22px;
+  min-height: 48px;
   cursor: pointer;
 }
 

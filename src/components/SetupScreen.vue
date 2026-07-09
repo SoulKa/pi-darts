@@ -133,10 +133,6 @@ function removeFromOrder(id: number) {
   order.value = order.value.filter((n) => n !== id)
 }
 
-function useListedOrder() {
-  order.value = validPlayers.value.map((p) => p.id)
-}
-
 function start() {
   if (canStart.value) {
     emit('start', {
@@ -183,7 +179,6 @@ function start() {
     <section class="panel grow">
       <div class="panel-head">
         <h2>Bull out — order of play</h2>
-        <button class="link" @click="useListedOrder">use listed order</button>
       </div>
       <p class="help">Bull at the board, then tap players in the order they'll throw.</p>
 
@@ -374,9 +369,9 @@ h2 {
 }
 
 .box {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   border: 2px solid rgba(148, 163, 184, 0.5);
   background: transparent;
   flex: none;
@@ -398,7 +393,7 @@ h2 {
   justify-content: center;
   color: #04283b;
   font-weight: 900;
-  font-size: 20px;
+  font-size: 26px;
 }
 
 .name-field {
@@ -429,13 +424,13 @@ h2 {
 
 .del {
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   border: none;
   background: rgba(148, 163, 184, 0.12);
   color: #fb7185;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -533,16 +528,6 @@ h2 {
 
 .chip:active {
   transform: scale(0.97);
-}
-
-.link {
-  background: none;
-  border: none;
-  color: #38bdf8;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
 }
 
 .start {

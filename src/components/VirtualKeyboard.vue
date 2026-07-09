@@ -145,7 +145,8 @@ function toggleShift() {
   color: #04283b;
   font-size: 20px;
   font-weight: 800;
-  padding: 10px 22px;
+  padding: 14px 26px;
+  min-height: 48px;
   cursor: pointer;
 }
 
