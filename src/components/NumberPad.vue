@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Multiplier } from '../game/useDartGame'
+import type { CheckoutRoute } from '../game/checkout'
 
 const props = defineProps<{
   disabled: boolean
   canUndo: boolean
+  checkoutRoutes: CheckoutRoute[]
 }>()
 
 const emit = defineEmits<{
@@ -35,16 +37,27 @@ function pressNumber(base: number) {
 const doubleActive = computed(() => multiplier.value === 2)
 const tripleActive = computed(() => multiplier.value === 3)
 
+// One-line checkout summary (empty when there's no finish this turn).
+const checkoutText = computed(() =>
+  props.checkoutRoutes.length
+    ? `Checkout: ${props.checkoutRoutes.map((r) => r.label).join(' · ')}`
+    : '',
+)
+
+// Armed-multiplier feedback wins (it's momentary); otherwise show the checkout, else the tip.
+const showingCheckout = computed(() => multiplier.value === 1 && checkoutText.value !== '')
+
 const hint = computed(() => {
   if (multiplier.value === 2) return 'DOUBLE armed – tap a number'
   if (multiplier.value === 3) return 'TRIPLE armed – tap a number'
+  if (checkoutText.value) return checkoutText.value
   return 'Tap the number that was hit'
 })
 </script>
 
 <template>
   <div class="pad">
-    <div class="hint" :class="{ armed: multiplier !== 1 }">{{ hint }}</div>
+    <div class="hint" :class="{ armed: multiplier !== 1, checkout: showingCheckout }">{{ hint }}</div>
 
     <div class="numbers">
       <button
@@ -91,15 +104,22 @@ const hint = computed(() => {
 
 .hint {
   text-align: center;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.5px;
   color: #64748b;
-  height: 22px;
+  height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hint.armed {
   color: #fb923c;
+}
+
+.hint.checkout {
+  color: #22d3ee;
 }
 
 .numbers {

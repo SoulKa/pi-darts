@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import CheckoutBar from './components/CheckoutBar.vue'
 import NumberPad from './components/NumberPad.vue'
 import PlayerBoard from './components/PlayerBoard.vue'
 import SetupScreen from './components/SetupScreen.vue'
@@ -80,15 +79,13 @@ const justFinishedPlace = computed(() =>
     </section>
 
     <section class="pad-area">
-      <CheckoutBar :routes="checkoutRoutes" />
-      <div class="pad-wrap">
-        <NumberPad
-          :disabled="isGameOver || showBanner"
-          :can-undo="canUndo"
-          @throw="throwDart"
-          @undo="undo"
-        />
-      </div>
+      <NumberPad
+        :disabled="isGameOver || showBanner"
+        :can-undo="canUndo"
+        :checkout-routes="checkoutRoutes"
+        @throw="throwDart"
+        @undo="undo"
+      />
     </section>
 
     <!-- Result overlay: shown when a player finishes or the game ends -->
@@ -189,14 +186,6 @@ h1 {
 }
 
 .pad-area {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pad-wrap {
   flex: 1;
   min-height: 0;
 }
