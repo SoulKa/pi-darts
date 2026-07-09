@@ -11,7 +11,7 @@ const props = defineProps<{
 }>()
 
 // One accent colour per player, keyed by index.
-const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80']
+const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80', '#fbbf24', '#fb7185']
 const PLACE_LABELS = ['1st', '2nd', '3rd', '4th']
 
 const slots = Array.from({ length: THROWS_PER_TURN }, (_, i) => i)

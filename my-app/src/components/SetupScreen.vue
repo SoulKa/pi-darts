@@ -1,60 +1,118 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { PLAYERS } from '../game/useDartGame'
+import VirtualKeyboard from './VirtualKeyboard.vue'
 
 const emit = defineEmits<{
   start: [names: string[]]
 }>()
 
-const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80']
-const PLACE_LABELS = ['1st', '2nd', '3rd', '4th']
+const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80', '#fbbf24', '#fb7185']
+const PLACE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th']
 
-// Who is opted in (all selected by default).
-const selected = reactive<Record<string, boolean>>(
-  Object.fromEntries(PLAYERS.map((name) => [name, true])),
-)
-
-// The starting order, built by tapping players ("bull out").
-const order = ref<string[]>([])
-
-const selectedNames = computed(() => PLAYERS.filter((n) => selected[n]))
-// Selected players not yet placed in the order.
-const remaining = computed(() => selectedNames.value.filter((n) => !order.value.includes(n)))
-
-const canStart = computed(
-  () => selectedNames.value.length >= 2 && order.value.length === selectedNames.value.length,
-)
-
-function accent(name: string): string {
-  return ACCENTS[(PLAYERS as readonly string[]).indexOf(name) % ACCENTS.length]!
+interface RosterPlayer {
+  id: number
+  name: string
+  selected: boolean
 }
 
-function toggle(name: string) {
-  selected[name] = !selected[name]
-  if (!selected[name]) {
-    order.value = order.value.filter((n) => n !== name)
+let uid = 0
+// Seed with the previous defaults; the roster is now fully editable.
+const roster = ref<RosterPlayer[]>(PLAYERS.map((name) => ({ id: uid++, name, selected: true })))
+// Starting order ("bull out"), stored by id so renaming keeps the order intact.
+const order = ref<number[]>([])
+
+// Which player's name is being typed on the on-screen keyboard (no HW keyboard on the Pi).
+const editingId = ref<number | null>(null)
+const editingPlayer = computed(() => roster.value.find((p) => p.id === editingId.value) ?? null)
+
+function editName(p: RosterPlayer) {
+  editingId.value = p.id
+}
+
+function setEditingName(value: string) {
+  if (editingPlayer.value) {
+    editingPlayer.value.name = value
+    onName(editingPlayer.value)
   }
 }
 
-function addToOrder(name: string) {
-  if (!order.value.includes(name)) order.value.push(name)
+function closeKeyboard() {
+  editingId.value = null
 }
 
-function removeFromOrder(name: string) {
-  order.value = order.value.filter((n) => n !== name)
+const selectedPlayers = computed(() => roster.value.filter((p) => p.selected))
+// Selected players that also have a non-empty name.
+const validPlayers = computed(() => selectedPlayers.value.filter((p) => p.name.trim() !== ''))
+const remaining = computed(() => validPlayers.value.filter((p) => !order.value.includes(p.id)))
+
+const canStart = computed(
+  () =>
+    validPlayers.value.length >= 2 &&
+    validPlayers.value.length === selectedPlayers.value.length &&
+    order.value.length === validPlayers.value.length,
+)
+
+const startLabel = computed(() => {
+  if (validPlayers.value.length !== selectedPlayers.value.length) return 'Name every player'
+  if (validPlayers.value.length < 2) return 'Add at least 2 players'
+  if (order.value.length < validPlayers.value.length) return 'Finish the order to start'
+  return 'Start Game'
+})
+
+function accent(id: number): string {
+  const i = roster.value.findIndex((p) => p.id === id)
+  return ACCENTS[i % ACCENTS.length]!
+}
+
+function placeLabel(i: number): string {
+  return PLACE_LABELS[i] ?? `${i + 1}th`
+}
+
+function nameOf(id: number): string {
+  return roster.value.find((p) => p.id === id)?.name ?? ''
+}
+
+function addPlayer() {
+  const id = uid++
+  roster.value.push({ id, name: '', selected: true })
+  editingId.value = id // open the keyboard to type the new name straight away
+}
+
+function removePlayer(id: number) {
+  roster.value = roster.value.filter((p) => p.id !== id)
+  order.value = order.value.filter((n) => n !== id)
+  if (editingId.value === id) editingId.value = null
+}
+
+function toggle(p: RosterPlayer) {
+  p.selected = !p.selected
+  if (!p.selected) order.value = order.value.filter((n) => n !== p.id)
+}
+
+// Drop a player from the order if they become invalid while typing.
+function onName(p: RosterPlayer) {
+  if (p.name.trim() === '') order.value = order.value.filter((n) => n !== p.id)
+}
+
+function addToOrder(id: number) {
+  if (!order.value.includes(id)) order.value.push(id)
+}
+
+function removeFromOrder(id: number) {
+  order.value = order.value.filter((n) => n !== id)
 }
 
 function clearOrder() {
   order.value = []
 }
 
-// Convenience: fill the order using the listed order (skip bulling).
 function useListedOrder() {
-  order.value = [...selectedNames.value]
+  order.value = validPlayers.value.map((p) => p.id)
 }
 
 function start() {
-  if (canStart.value) emit('start', [...order.value])
+  if (canStart.value) emit('start', order.value.map(nameOf))
 }
 </script>
 
@@ -66,20 +124,25 @@ function start() {
     </header>
 
     <section class="panel">
-      <h2>Who's playing?</h2>
+      <h2>Players</h2>
+
       <div class="players">
-        <label
-          v-for="name in PLAYERS"
-          :key="name"
+        <div
+          v-for="p in roster"
+          :key="p.id"
           class="player"
-          :class="{ on: selected[name] }"
-          :style="{ '--accent': accent(name) }"
+          :class="{ on: p.selected, editing: editingId === p.id }"
+          :style="{ '--accent': accent(p.id) }"
         >
-          <input type="checkbox" :checked="selected[name]" @change="toggle(name)" />
-          <span class="box"></span>
-          <span class="pname">{{ name }}</span>
-        </label>
+          <button class="box" :class="{ ticked: p.selected }" @click="toggle(p)"></button>
+          <button class="name-field" :class="{ empty: !p.name }" @click="editName(p)">
+            {{ p.name || 'Tap to name…' }}
+          </button>
+          <button class="del" :disabled="roster.length <= 1" @click="removePlayer(p.id)">✕</button>
+        </div>
       </div>
+
+      <button class="add-btn" @click="addPlayer">＋ Add player</button>
     </section>
 
     <section class="panel grow">
@@ -91,14 +154,14 @@ function start() {
 
       <div class="order-list">
         <button
-          v-for="(name, i) in order"
-          :key="name"
+          v-for="(id, i) in order"
+          :key="id"
           class="ordered"
-          :style="{ '--accent': accent(name) }"
-          @click="removeFromOrder(name)"
+          :style="{ '--accent': accent(id) }"
+          @click="removeFromOrder(id)"
         >
-          <span class="rank">{{ PLACE_LABELS[i] }}</span>
-          <span class="oname">{{ name }}</span>
+          <span class="rank">{{ placeLabel(i) }}</span>
+          <span class="oname">{{ nameOf(id) }}</span>
           <span class="remove">✕</span>
         </button>
         <p v-if="order.length === 0" class="empty">Tap a player below to make them go first…</p>
@@ -106,23 +169,32 @@ function start() {
 
       <div v-if="remaining.length" class="pool">
         <button
-          v-for="name in remaining"
-          :key="name"
+          v-for="p in remaining"
+          :key="p.id"
           class="chip"
-          :style="{ '--accent': accent(name) }"
-          @click="addToOrder(name)"
+          :style="{ '--accent': accent(p.id) }"
+          @click="addToOrder(p.id)"
         >
-          {{ name }}
+          {{ p.name }}
         </button>
       </div>
 
       <button v-if="order.length" class="link clear" @click="clearOrder">clear order</button>
     </section>
 
-    <button class="start" :disabled="!canStart" @click="start">
-      {{ selectedNames.length < 2 ? 'Select at least 2 players' : order.length < selectedNames.length ? 'Finish the order to start' : 'Start Game' }}
-    </button>
+    <button class="start" :disabled="!canStart" @click="start">{{ startLabel }}</button>
   </div>
+
+  <Teleport to="#app">
+    <VirtualKeyboard
+      v-if="editingPlayer"
+      :model-value="editingPlayer.name"
+      :maxlength="12"
+      label="Player name"
+      @update:model-value="setEditingName"
+      @close="closeKeyboard"
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -131,7 +203,8 @@ function start() {
   display: flex;
   flex-direction: column;
   padding: 28px 24px;
-  gap: 20px;
+  gap: 18px;
+  overflow-y: auto;
 }
 
 .head h1 {
@@ -183,10 +256,10 @@ h2 {
   margin-top: -6px;
 }
 
-/* Player checkboxes */
+/* Editable player rows */
 .players {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -195,20 +268,18 @@ h2 {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
+  padding: 12px 16px;
   border-radius: 16px;
   background: rgba(2, 6, 23, 0.5);
   border: 2px solid rgba(148, 163, 184, 0.15);
-  cursor: pointer;
-  user-select: none;
 }
 
 .player.on {
   border-color: var(--accent);
 }
 
-.player input {
-  display: none;
+.player.editing {
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .box {
@@ -216,16 +287,18 @@ h2 {
   height: 30px;
   border-radius: 9px;
   border: 2px solid rgba(148, 163, 184, 0.5);
+  background: transparent;
   flex: none;
+  cursor: pointer;
   position: relative;
 }
 
-.player.on .box {
+.box.ticked {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.player.on .box::after {
+.box.ticked::after {
   content: '✓';
   position: absolute;
   inset: 0;
@@ -237,10 +310,65 @@ h2 {
   font-size: 20px;
 }
 
-.pname {
+.name-field {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(148, 163, 184, 0.25);
+  color: #f1f5f9;
   font-size: 26px;
   font-weight: 700;
-  color: #f1f5f9;
+  padding: 6px 2px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player.editing .name-field {
+  border-bottom-color: var(--accent);
+}
+
+.name-field.empty {
+  color: #475569;
+  font-weight: 600;
+}
+
+.del {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(148, 163, 184, 0.12);
+  color: #fb7185;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.del:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.add-btn {
+  width: 100%;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px dashed rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.08);
+  color: #38bdf8;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.add-btn:active {
+  transform: scale(0.99);
+  background: rgba(56, 189, 248, 0.16);
 }
 
 /* Order builder */

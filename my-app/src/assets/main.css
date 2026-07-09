@@ -34,6 +34,7 @@ body {
 
 /* Fixed portrait frame optimised for 720 x 1280 */
 #app {
+  position: relative;
   width: 720px;
   height: 1280px;
   overflow: hidden;

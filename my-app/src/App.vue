@@ -23,13 +23,17 @@ const {
   backToSetup,
 } = useDartGame()
 
-const PLACE_LABELS = ['1st', '2nd', '3rd', '4th']
+const PLACE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th']
+
+function placeLabel(i: number): string {
+  return PLACE_LABELS[i] ?? `${i + 1}th`
+}
 
 const justFinishedName = computed(() =>
   bannerIndex.value === null ? '' : (players.value[bannerIndex.value]?.name ?? ''),
 )
 const justFinishedPlace = computed(() =>
-  bannerIndex.value === null ? '' : (PLACE_LABELS[finishOrder.value.indexOf(bannerIndex.value)] ?? ''),
+  bannerIndex.value === null ? '' : placeLabel(finishOrder.value.indexOf(bannerIndex.value)),
 )
 </script>
 
@@ -69,9 +73,9 @@ const justFinishedPlace = computed(() =>
           <div class="modal-title">🏆 Game Over</div>
           <ol class="standings">
             <li v-for="(p, i) in standings" :key="p.name" :class="{ champ: i === 0 }">
-              <span class="rank">{{ PLACE_LABELS[i] }}</span>
+              <span class="rank">{{ placeLabel(i) }}</span>
               <span class="who">{{ p.name }}</span>
-              <span class="pts">{{ p.score }}</span>
+              <span v-if="p.score > 0" class="pts">{{ p.score }} left</span>
             </li>
           </ol>
         </template>
