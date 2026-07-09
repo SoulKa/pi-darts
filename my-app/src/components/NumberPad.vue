@@ -12,7 +12,7 @@ const emit = defineEmits<{
   undo: []
 }>()
 
-// 1..20 then 0 then 25 (bullseye)
+// 1..20 then 0 (miss) then 25 (bullseye)
 const numbers = [...Array.from({ length: 20 }, (_, i) => i + 1), 0, 25]
 
 const multiplier = ref<Multiplier>(1)
@@ -21,9 +21,15 @@ function toggleMultiplier(value: Exclude<Multiplier, 1>) {
   multiplier.value = multiplier.value === value ? 1 : value
 }
 
-// Triple 25 is not a legal dart; disable numbers that are illegal with the armed modifier.
+// Triple 25 is not a legal dart; double 25 (bullseye = 50) is allowed.
 function isIllegal(base: number): boolean {
   return base === 25 && multiplier.value === 3
+}
+
+function label(base: number): string {
+  if (base === 0) return 'Miss'
+  if (base === 25) return 'Bull'
+  return String(base)
 }
 
 function pressNumber(base: number) {
@@ -34,25 +40,34 @@ function pressNumber(base: number) {
 
 const doubleActive = computed(() => multiplier.value === 2)
 const tripleActive = computed(() => multiplier.value === 3)
+
+const hint = computed(() => {
+  if (multiplier.value === 2) return 'DOUBLE armed – tap a number'
+  if (multiplier.value === 3) return 'TRIPLE armed – tap a number'
+  return 'Tap the number that was hit'
+})
 </script>
 
 <template>
   <div class="pad">
+    <div class="hint" :class="{ armed: multiplier !== 1 }">{{ hint }}</div>
+
     <div class="numbers">
       <button
         v-for="n in numbers"
         :key="n"
         class="key num"
+        :class="{ special: n === 0 || n === 25 }"
         :disabled="props.disabled || isIllegal(n)"
         @click="pressNumber(n)"
       >
-        {{ n }}
+        {{ label(n) }}
       </button>
     </div>
 
     <div class="modifiers">
       <button
-        class="key mod"
+        class="key mod double"
         :class="{ armed: doubleActive }"
         :disabled="props.disabled"
         @click="toggleMultiplier(2)"
@@ -60,14 +75,14 @@ const tripleActive = computed(() => multiplier.value === 3)
         Double
       </button>
       <button
-        class="key mod"
+        class="key mod triple"
         :class="{ armed: tripleActive }"
         :disabled="props.disabled"
         @click="toggleMultiplier(3)"
       >
         Triple
       </button>
-      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">Undo</button>
+      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺ Undo</button>
     </div>
   </div>
 </template>
@@ -80,59 +95,86 @@ const tripleActive = computed(() => multiplier.value === 3)
   height: 100%;
 }
 
+.hint {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  height: 22px;
+}
+
+.hint.armed {
+  color: #fb923c;
+}
+
 .numbers {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+  min-height: 0;
 }
 
 .modifiers {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  height: 110px;
+  height: 96px;
 }
 
 .key {
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   font-weight: 800;
   cursor: pointer;
-  color: #0b1220;
-  transition: transform 0.05s ease, filter 0.1s ease;
+  transition: transform 0.05s ease, filter 0.1s ease, box-shadow 0.15s ease;
   touch-action: manipulation;
 }
 
 .key:active:not(:disabled) {
-  transform: scale(0.96);
+  transform: translateY(2px) scale(0.98);
 }
 
 .key:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .num {
-  background: #e2e8f0;
-  font-size: 34px;
+  background: linear-gradient(180deg, #f8fafc, #cbd5e1);
+  color: #0b1220;
+  font-size: 32px;
+  box-shadow: inset 0 -3px 0 rgba(15, 23, 42, 0.25);
+}
+
+.num.special {
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+  color: #04283b;
+  font-size: 24px;
 }
 
 .mod {
-  background: #38bdf8;
-  color: #04283b;
-  font-size: 28px;
+  font-size: 26px;
+  color: #fff;
+}
+
+.double {
+  background: linear-gradient(180deg, #34d399, #059669);
+}
+
+.triple {
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
 }
 
 .mod.armed {
-  background: #f97316;
-  color: #fff;
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.6);
+  background: linear-gradient(180deg, #fb923c, #ea580c);
+  box-shadow: 0 0 24px rgba(249, 115, 22, 0.7);
 }
 
 .undo {
-  background: #f87171;
+  background: linear-gradient(180deg, #fb7185, #e11d48);
   color: #fff;
-  font-size: 28px;
+  font-size: 24px;
 }
 </style>

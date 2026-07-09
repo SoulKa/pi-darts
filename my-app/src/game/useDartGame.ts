@@ -21,7 +21,8 @@ interface Snapshot {
   players: Player[]
   currentPlayerIndex: number
   currentThrows: DartThrow[]
-  winnerIndex: number | null
+  finishOrder: number[]
+  bannerIndex: number | null
 }
 
 function initialPlayers(): Player[] {
@@ -32,31 +33,59 @@ export function useDartGame() {
   const players = ref<Player[]>(initialPlayers())
   const currentPlayerIndex = ref(0)
   const currentThrows = ref<DartThrow[]>([])
-  const winnerIndex = ref<number | null>(null)
+  // Player indices in the order they reached exactly 0 (1st, 2nd, ...).
+  const finishOrder = ref<number[]>([])
+  // Index of the player whose finish is currently being announced (drives the overlay).
+  const bannerIndex = ref<number | null>(null)
 
   // Snapshot stack powering undo. Each entry is the full state *before* a throw.
   const history = ref<Snapshot[]>([])
 
   const currentPlayer = computed(() => players.value[currentPlayerIndex.value])
-  const isGameOver = computed(() => winnerIndex.value !== null)
+  // Game is fully over once only a single player has not yet finished.
+  const isGameOver = computed(() => finishOrder.value.length >= players.value.length - 1)
   const canUndo = computed(() => history.value.length > 0)
+  const showBanner = computed(() => bannerIndex.value !== null)
+
+  // Final standings: finishers in order, then the remaining player(s) last.
+  const standings = computed<Player[]>(() => {
+    const finished = finishOrder.value.map((i) => players.value[i]!)
+    const rest = players.value.filter((_, i) => !finishOrder.value.includes(i))
+    return [...finished, ...rest]
+  })
+
+  function placeOf(index: number): number {
+    const pos = finishOrder.value.indexOf(index)
+    return pos === -1 ? 0 : pos + 1
+  }
 
   function snapshot(): Snapshot {
     return {
       players: players.value.map((p) => ({ ...p })),
       currentPlayerIndex: currentPlayerIndex.value,
       currentThrows: currentThrows.value.map((t) => ({ ...t })),
-      winnerIndex: winnerIndex.value,
+      finishOrder: [...finishOrder.value],
+      bannerIndex: bannerIndex.value,
     }
+  }
+
+  function nextActiveIndex(from: number): number {
+    let i = from
+    for (let n = 0; n < players.value.length; n++) {
+      i = (i + 1) % players.value.length
+      if (!finishOrder.value.includes(i)) return i
+    }
+    return from
   }
 
   function advanceTurn() {
     currentThrows.value = []
-    currentPlayerIndex.value = (currentPlayerIndex.value + 1) % players.value.length
+    currentPlayerIndex.value = nextActiveIndex(currentPlayerIndex.value)
   }
 
   function throwDart(base: number, multiplier: Multiplier) {
-    if (isGameOver.value) return
+    // Ignore input while the result overlay is up or the game is finished.
+    if (isGameOver.value || showBanner.value) return
 
     const player = players.value[currentPlayerIndex.value]
     if (!player) return
@@ -70,14 +99,15 @@ export function useDartGame() {
 
     if (newScore === 0) {
       player.score = 0
-      winnerIndex.value = currentPlayerIndex.value
+      finishOrder.value.push(currentPlayerIndex.value)
+      bannerIndex.value = currentPlayerIndex.value // pause for the overlay
       return
     }
 
     if (newScore < 0) {
       // Bust: cancel the whole turn, revert to the start-of-turn score.
       const turnPoints = currentThrows.value.reduce((sum, t) => sum + t.points, 0)
-      player.score += turnPoints - points // undo prior throws this turn (points not yet applied)
+      player.score += turnPoints - points
       advanceTurn()
       return
     }
@@ -89,20 +119,29 @@ export function useDartGame() {
     }
   }
 
+  // Dismiss the result overlay and let the remaining players continue.
+  function continuePlaying() {
+    if (!showBanner.value) return
+    bannerIndex.value = null
+    if (!isGameOver.value) advanceTurn()
+  }
+
   function undo() {
     const prev = history.value.pop()
     if (!prev) return
     players.value = prev.players
     currentPlayerIndex.value = prev.currentPlayerIndex
     currentThrows.value = prev.currentThrows
-    winnerIndex.value = prev.winnerIndex
+    finishOrder.value = prev.finishOrder
+    bannerIndex.value = prev.bannerIndex
   }
 
   function reset() {
     players.value = initialPlayers()
     currentPlayerIndex.value = 0
     currentThrows.value = []
-    winnerIndex.value = null
+    finishOrder.value = []
+    bannerIndex.value = null
     history.value = []
   }
 
@@ -110,11 +149,16 @@ export function useDartGame() {
     players,
     currentPlayerIndex,
     currentThrows,
-    winnerIndex,
+    finishOrder,
+    bannerIndex,
     currentPlayer,
     isGameOver,
     canUndo,
+    showBanner,
+    standings,
+    placeOf,
     throwDart,
+    continuePlaying,
     undo,
     reset,
   }
