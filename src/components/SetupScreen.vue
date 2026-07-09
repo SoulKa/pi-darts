@@ -74,7 +74,6 @@ function closeKeyboard() {
 const selectedPlayers = computed(() => roster.value.filter((p) => p.selected))
 // Selected players that also have a non-empty name.
 const validPlayers = computed(() => selectedPlayers.value.filter((p) => p.name.trim() !== ''))
-const remaining = computed(() => validPlayers.value.filter((p) => !order.value.includes(p.id)))
 
 const canStart = computed(
   () =>
@@ -131,6 +130,12 @@ function addToOrder(id: number) {
 
 function removeFromOrder(id: number) {
   order.value = order.value.filter((n) => n !== id)
+}
+
+// Tap a name to add it to the play order; tap again to take it back out.
+function toggleOrder(id: number) {
+  if (order.value.includes(id)) removeFromOrder(id)
+  else addToOrder(id)
 }
 
 function start() {
@@ -197,13 +202,14 @@ function start() {
         <p v-if="order.length === 0" class="empty">Tap a player below to make them go first…</p>
       </div>
 
-      <div v-if="remaining.length" class="pool">
+      <div v-if="validPlayers.length" class="pool">
         <button
-          v-for="p in remaining"
+          v-for="p in validPlayers"
           :key="p.id"
           class="chip"
+          :class="{ chosen: order.includes(p.id) }"
           :style="{ '--accent': accent(p.id) }"
-          @click="addToOrder(p.id)"
+          @click="toggleOrder(p.id)"
         >
           {{ p.name }}
         </button>
@@ -507,15 +513,19 @@ h2 {
 
 .pool {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   flex: none;
   padding-top: 12px;
   border-top: 1px solid rgba(148, 163, 184, 0.15);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chip {
   --accent: #22d3ee;
+  flex: none;
+  white-space: nowrap;
   padding: 12px 22px;
   border-radius: 999px;
   border: 2px dashed var(--accent);
@@ -524,6 +534,13 @@ h2 {
   font-size: 22px;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* Already placed in the order — stays visible in place, just marked. */
+.chip.chosen {
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent) 22%, #0b1220);
+  color: #f8fafc;
 }
 
 .chip:active {
