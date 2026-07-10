@@ -17,6 +17,8 @@ yarn build            # type-check, then build the board and console
 yarn preview:board
 yarn preview:console
 yarn start:server
+yarn workspace @pi-darts/server db:generate  # after changing the Drizzle schema
+yarn workspace @pi-darts/server db:check     # validate migration metadata
 ```
 
 There is no test runner or lint script. For a focused automated check, run the owning
@@ -39,7 +41,8 @@ or `yarn workspace @pi-darts/shared type-check`.
   bodies with schemas from `@pi-darts/shared`, services mutate SQLite through Drizzle, and
   `realtime/` broadcasts snapshots, match changes, and the in-memory live-score mirror. It can
   serve a built console SPA when `CONSOLE_DIR` is set; SQLite lives at
-  `${DATA_DIR:-./data}/pi-darts.db`.
+  `${DATA_DIR:-./data}/pi-darts.db`. Drizzle applies committed migrations at startup; define
+  table and index changes only in `apps/server/src/db/schema.ts`, then generate a migration.
 - `packages/shared` is the contract boundary: domain models, Zod request schemas, and typed
   Socket.IO event maps are exported from its root. Change these contracts before adapting server
   and client code, and keep all three consumers aligned.
