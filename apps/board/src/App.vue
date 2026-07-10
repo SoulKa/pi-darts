@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import NumberPad from './components/NumberPad.vue'
 import PlayerBoard from './components/PlayerBoard.vue'
 import SetupScreen from './components/SetupScreen.vue'
-import { useDartGame } from './game/useDartGame'
+import TournamentBar from './components/TournamentBar.vue'
+import { useDartGame, type Multiplier } from './game/useDartGame'
+import { useTournamentClient } from './game/tournamentClient'
 
 const {
   phase,
@@ -24,6 +26,79 @@ const {
   startGame,
   backToSetup,
 } = useDartGame()
+
+// --- Tournament mode (additive; offline play is unaffected when inactive) ---
+const tour = useTournamentClient()
+const tournamentMode = ref(false)
+const legIndex = ref(0)
+// Server participant ids for the two seats, indexed like `players`.
+const matchIds = ref<[string, string] | null>(null)
+const legsWon = ref<[number, number]>([0, 0])
+
+function legsToWin(bestOf: number): number {
+  return Math.floor(bestOf / 2) + 1
+}
+
+// Start one leg of the current assigned match using the shared game engine.
+function startLeg() {
+  const a = tour.assignment.value
+  if (!a) return
+  const m = a.match
+  const nameById = new Map(a.participants.map((p) => [p.id, p.name]))
+  startGame({
+    names: [
+      nameById.get(m.participantAId ?? '') ?? 'Player A',
+      nameById.get(m.participantBId ?? '') ?? 'Player B',
+    ],
+    startScore: m.startScore,
+    outMode: m.outMode,
+  })
+}
+
+// When the server assigns a match, enter tournament mode and start the first leg.
+watch(
+  () => tour.assignment.value,
+  (a) => {
+    if (!a || !a.match.participantAId || !a.match.participantBId) return
+    matchIds.value = [a.match.participantAId, a.match.participantBId]
+    legsWon.value = [a.match.legsA, a.match.legsB]
+    legIndex.value = a.match.legsA + a.match.legsB
+    tournamentMode.value = true
+    startLeg()
+  },
+)
+
+// Record each dart, then mirror it to the server so overview screens update live.
+function handleThrow(base: number, multiplier: Multiplier) {
+  const ids = matchIds.value
+  const throwerId = tournamentMode.value && ids ? ids[currentPlayerIndex.value] : null
+  throwDart(base, multiplier)
+  if (throwerId) tour.reportThrow(throwerId, base, multiplier)
+}
+
+// On a finished leg, report the winner; advance to the next leg or end the match.
+function reportLegAndContinue() {
+  const ids = matchIds.value
+  const winnerSeat = finishOrder.value[0]
+  const bestOf = tour.assignment.value?.match.bestOf ?? 1
+  if (!ids || winnerSeat === undefined) return
+
+  tour.reportLegResult(legIndex.value, ids[winnerSeat])
+  const tally: [number, number] = [...legsWon.value]
+  tally[winnerSeat] += 1
+  legsWon.value = tally
+
+  const need = legsToWin(bestOf)
+  if (tally[0] >= need || tally[1] >= need) {
+    tournamentMode.value = false
+    matchIds.value = null
+    tour.clearAssignment()
+    backToSetup()
+  } else {
+    legIndex.value += 1
+    startLeg()
+  }
+}
 
 const PLACE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th']
 
@@ -58,7 +133,10 @@ const justFinishedPlace = computed(() =>
 </script>
 
 <template>
-  <SetupScreen v-if="phase === 'setup'" @start="startGame" />
+  <template v-if="phase === 'setup'">
+    <TournamentBar />
+    <SetupScreen @start="startGame" />
+  </template>
 
   <div v-else class="game">
     <header class="topbar">
@@ -83,7 +161,7 @@ const justFinishedPlace = computed(() =>
         :disabled="isGameOver || showBanner"
         :can-undo="canUndo"
         :checkout-routes="checkoutRoutes"
-        @throw="throwDart"
+        @throw="handleThrow"
         @undo="undo"
       />
     </section>
@@ -110,6 +188,9 @@ const justFinishedPlace = computed(() =>
 
         <div class="modal-actions">
           <button v-if="!isGameOver" class="primary" @click="continuePlaying">Continue Playing</button>
+          <button v-if="isGameOver && tournamentMode" class="primary" @click="reportLegAndContinue">
+            Report result to server →
+          </button>
           <button class="secondary" :disabled="!canUndo" @click="undo">↺ Undo last throw</button>
           <button class="secondary" @click="requestNewGame">New Game</button>
         </div>
