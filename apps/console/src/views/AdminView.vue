@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, reactive, ref } from 'vue'
-import type { OutMode, StageType, Tournament } from '@pi-darts/shared'
+import type { OutMode, StageType, StartScore, Tournament } from '@pi-darts/shared'
 import { api } from '../api'
 import { useTournamentFeed } from '../feed'
 
@@ -16,7 +16,7 @@ const newStage = reactive({
   name: '',
   type: 'group' as StageType,
   bestOf: 3,
-  startScore: 501,
+  startScore: 501 as StartScore,
   outMode: 'double' as OutMode,
 })
 const genOpts = reactive({ groupCount: 2, qualifiersPerGroup: 2 })
@@ -87,7 +87,7 @@ async function createStage() {
       type: newStage.type,
       format: newStage.type === 'group' ? 'round_robin' : 'single_elimination',
       bestOf: Number(newStage.bestOf),
-      startScore: Number(newStage.startScore),
+      startScore: newStage.startScore,
       outMode: newStage.outMode,
     })
     newStage.name = ''

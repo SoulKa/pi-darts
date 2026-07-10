@@ -81,7 +81,7 @@ function reportLegAndContinue() {
   const ids = matchIds.value
   const winnerSeat = finishOrder.value[0]
   const bestOf = tour.assignment.value?.match.bestOf ?? 1
-  if (!ids || winnerSeat === undefined) return
+  if (!ids || (winnerSeat !== 0 && winnerSeat !== 1)) return
 
   tour.reportLegResult(legIndex.value, ids[winnerSeat])
   const tally: [number, number] = [...legsWon.value]
