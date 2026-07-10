@@ -11,10 +11,14 @@
     "node": "^22.18.0 || >=24.12.0"
   },
   "scripts": {
-    "dev:board": "npm run dev -w @pi-darts/board",
-    "dev:console": "npm run dev -w @pi-darts/console",
-    "dev:server": "npm run dev -w @pi-darts/server",
-    "build": "npm run build --workspaces --if-present",
-    "type-check": "npm run type-check --workspaces --if-present"
-  }
+    "dev:board": "yarn workspace @pi-darts/board dev",
+    "dev:console": "yarn workspace @pi-darts/console dev",
+    "dev:server": "yarn workspace @pi-darts/server dev",
+    "preview:board": "yarn workspace @pi-darts/board preview",
+    "preview:console": "yarn workspace @pi-darts/console preview",
+    "start:server": "yarn workspace @pi-darts/server start",
+    "build": "yarn type-check && yarn workspace @pi-darts/board build-only && yarn workspace @pi-darts/console build-only",
+    "type-check": "yarn workspace @pi-darts/shared type-check && yarn workspace @pi-darts/server type-check && yarn workspace @pi-darts/board type-check && yarn workspace @pi-darts/console type-check"
+  },
+  "packageManager": "yarn@4.17.1"
 }

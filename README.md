@@ -34,31 +34,40 @@ under [`src/components/`](src/components/).
 ## Project setup
 
 ```sh
-npm install
+yarn install
 ```
 
 ### Develop (hot reload)
 
 ```sh
-npm run dev
+yarn dev:board
+yarn dev:console
+yarn dev:server
 ```
 
 ### Type-check
 
 ```sh
-npm run type-check
+yarn type-check
 ```
 
 ### Build for production
 
 ```sh
-npm run build
+yarn build
 ```
 
-The build outputs static files to `dist/`. Preview the production build locally with:
+Preview the frontends locally with:
 
 ```sh
-npm run preview
+yarn preview:board
+yarn preview:console
+```
+
+Run the server without the watcher with:
+
+```sh
+yarn start:server
 ```
 
 ## Running on the Raspberry Pi
@@ -70,3 +79,7 @@ Pi's touchscreen resolution and assumes touch input.
 ## Requirements
 
 - Node.js `^22.18.0 || >=24.12.0` (see `engines` in `package.json`)
+- Yarn `4.17.1` (via the `packageManager` field in `package.json`)
+
+Yarn replaces npm in this repo, but it does **not** replace Node.js. Node is still required to
+run Vite, TypeScript, and the server-side tooling.
