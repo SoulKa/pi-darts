@@ -1,12 +1,13 @@
 // Core domain model shared by the server, board, and console.
 // Mirrors the vocabulary of the board's game engine (apps/board/src/game) so the
 // two sides speak the same language about darts games.
+import type { DartThrow as BoardDartThrow, Multiplier as BoardMultiplier } from './boardState'
 
 /** Finishing rule for a game. A "double" finish requires the last dart be a double. */
 export type OutMode = 'single' | 'double'
 
 /** Dart multiplier: single, double, or treble. */
-export type Multiplier = 1 | 2 | 3
+export type Multiplier = BoardMultiplier
 
 /** Selectable starting scores (mirrors START_SCORES in the board engine). */
 export const START_SCORES = [301, 501] as const
@@ -117,11 +118,7 @@ export interface Leg {
 }
 
 /** A single dart, matching the board engine's DartThrow shape. */
-export interface DartThrow {
-  base: number
-  multiplier: Multiplier
-  points: number
-}
+export type DartThrow = BoardDartThrow
 
 export interface StoredThrow extends DartThrow {
   id: string

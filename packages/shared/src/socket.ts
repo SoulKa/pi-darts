@@ -1,6 +1,7 @@
 // Typed socket.io event maps. These are plain interfaces of event signatures, so
 // this module stays free of any socket.io dependency — the server and clients
 // supply them as generics to Server<...> / io<...>() for end-to-end typing.
+import type { BoardGameSnapshot } from './boardState'
 import type { Floor, LiveMatchState, Match, Multiplier, Standing, Tournament } from './domain'
 
 /** A live dart pushed from a board while a match is in progress. */
@@ -24,6 +25,21 @@ export interface MatchAssignment {
   participants: { id: string; name: string }[]
 }
 
+/** The persisted state returned after registering a floor board or saving a snapshot. */
+export interface BoardSession {
+  snapshot: BoardGameSnapshot | null
+  revision: number
+}
+
+export interface BoardSnapshotPayload {
+  snapshot: BoardGameSnapshot
+  /** Optimistic-lock revision received with the latest BoardSession. */
+  expectedRevision: number
+}
+
+export type BoardSnapshotResponse =
+  { ok: true; session: BoardSession } | { ok: false; message: string; session?: BoardSession }
+
 /** Full tournament snapshot pushed to subscribers (e.g. the overview screen). */
 export interface TournamentSnapshot {
   tournament: Tournament
@@ -37,6 +53,8 @@ export interface ServerToClientEvents {
   'match:assigned': (payload: MatchAssignment) => void
   'match:live': (state: LiveMatchState) => void
   'match:updated': (match: Match) => void
+  /** Sent after registration so a reconnecting board can restore its full state. */
+  'board:session': (session: BoardSession) => void
   'error:message': (message: string) => void
 }
 
@@ -47,6 +65,12 @@ export interface ClientToServerEvents {
   'tournament:subscribe': (payload: { tournamentId: string }) => void
   /** A board takes ownership of a ready match. */
   'match:claim': (payload: { matchId: string; boardId: string }) => void
+  /** Save an entire board state atomically instead of mirroring individual darts. */
+  'board:snapshot': (
+    payload: BoardSnapshotPayload,
+    reply: (response: BoardSnapshotResponse) => void,
+  ) => void
+  /** Legacy no-op retained while boards migrate to board:snapshot uploads. */
   'match:throw': (payload: ThrowPayload) => void
   'match:legResult': (payload: LegResultPayload) => void
 }

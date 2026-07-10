@@ -1,16 +1,22 @@
-// socket.io wiring: boards claim matches and stream throws/leg results; overview
-// screens subscribe to a tournament room and receive snapshots + live updates.
+// Socket wiring for floor registration, durable board snapshots, and leg results.
 import type { Socket } from 'socket.io'
 import type {
+  BoardGameSnapshot,
   ClientToServerEvents,
-  DartThrow,
   Match,
-  Multiplier,
   ServerToClientEvents,
   SocketData,
 } from '@pi-darts/shared'
+import { boardSnapshotPayloadSchema } from '@pi-darts/shared'
 import { repo } from '../repo'
 import { dispatchMatch, reportLeg } from '../services/matches'
+import {
+  clearFloorSession,
+  ensureFloorSession,
+  getFloorSession,
+  initializeFloorSession,
+  saveFloorSnapshot,
+} from '../services/floorSessions'
 import {
   broadcastLive,
   broadcastMatch,
@@ -21,7 +27,7 @@ import {
   setIo,
   type IoServer,
 } from './hub'
-import { applyThrow, endLive, resetLeg, startLive } from './live'
+import { createMatchSnapshot, deriveLiveMatchState } from './live'
 
 type BoardSocket = Socket<ClientToServerEvents, ServerToClientEvents, never, SocketData>
 
@@ -52,7 +58,19 @@ export function setupRealtime(io: IoServer): void {
       socket.data.floorId = floorId
       socket.join(roomFor(tournamentId))
       socket.join(nextFloorRoom)
-      dispatchQueuedFloorMatch(tournamentId, floorId)
+      const session = ensureFloorSession(floor)
+      const live = repo
+        .listMatches(tournamentId)
+        .find((match) => match.floorId === floorId && match.status === 'live')
+      if (live && session.matchId === live.id && session.snapshot) {
+        socket.emit('board:session', toBoardSession(session))
+        socket.emit('match:assigned', { match: live, participants: participantsFor(live) })
+        const state = deriveLiveMatchState(session.snapshot)
+        if (state) broadcastLive(tournamentId, state)
+      } else {
+        socket.emit('board:session', toBoardSession(session))
+        dispatchQueuedFloorMatch(tournamentId, floorId)
+      }
     })
 
     socket.on('tournament:subscribe', ({ tournamentId }) => {
@@ -62,16 +80,46 @@ export function setupRealtime(io: IoServer): void {
       if (snapshot) socket.emit('tournament:state', snapshot)
     })
 
-    socket.on('match:throw', ({ matchId, participantId, base, multiplier }) => {
-      const match = repo.getMatch(matchId)
-      if (!match || !canControlMatch(socket, match)) return
-      const dart: DartThrow = {
-        base,
-        multiplier: multiplier as Multiplier,
-        points: base * multiplier,
+    socket.on('board:snapshot', (payload, reply) => {
+      const parsed = boardSnapshotPayloadSchema.safeParse(payload)
+      if (!parsed.success) {
+        rejectSnapshot(socket, reply, 'invalid board snapshot')
+        return
       }
-      const state = applyThrow(matchId, participantId, dart)
-      if (state) broadcastLive(match.tournamentId, state)
+      const floor = registeredFloor(socket)
+      if (!floor) {
+        rejectSnapshot(socket, reply, 'register a floor before saving a snapshot')
+        return
+      }
+
+      const current = getFloorSession(floor.id) ?? ensureFloorSession(floor)
+      const matchId = authorizeSnapshot(socket, floor.id, parsed.data.snapshot, current.matchId)
+      if (matchId === undefined) {
+        reply({ ok: false, message: 'snapshot is not authorized' })
+        return
+      }
+
+      const saved = saveFloorSnapshot(
+        floor,
+        parsed.data.snapshot,
+        matchId,
+        parsed.data.expectedRevision,
+      )
+      if (!saved) {
+        const latest = getFloorSession(floor.id)
+        reply({
+          ok: false,
+          message: 'snapshot revision conflict',
+          ...(latest ? { session: toBoardSession(latest) } : {}),
+        })
+        return
+      }
+
+      const session = toBoardSession(saved)
+      reply({ ok: true, session })
+      socket.emit('board:session', session)
+      const state = deriveLiveMatchState(parsed.data.snapshot)
+      if (state) broadcastLive(floor.tournamentId, state)
     })
 
     socket.on('match:legResult', ({ matchId, legIndex, winnerId }) => {
@@ -81,11 +129,24 @@ export function setupRealtime(io: IoServer): void {
         const { match, changed } = reportLeg(matchId, legIndex, winnerId)
         for (const m of changed) broadcastMatch(m)
 
-        if (match.status === 'completed') {
-          endLive(matchId)
-        } else {
-          const state = resetLeg(match)
-          if (state) broadcastLive(match.tournamentId, state)
+        const floor = match.floorId ? repo.getFloor(match.floorId) : undefined
+        if (floor) {
+          if (match.status === 'completed') {
+            const session = clearFloorSession(floor)
+            io.to(floorRoomFor(match.tournamentId, floor.id)).emit(
+              'board:session',
+              toBoardSession(session),
+            )
+          } else {
+            const nextLeg = createAssignmentSnapshot(match)
+            const session = initializeFloorSession(floor, match, nextLeg)
+            io.to(floorRoomFor(match.tournamentId, floor.id)).emit(
+              'board:session',
+              toBoardSession(session),
+            )
+            const state = deriveLiveMatchState(nextLeg)
+            if (state) broadcastLive(match.tournamentId, state)
+          }
         }
         broadcastSnapshot(match.tournamentId)
         if (match.status === 'completed' && match.floorId) {
@@ -104,12 +165,17 @@ export function dispatchFloorMatch(match: Match): Match | null {
   const room = floorRoomFor(match.tournamentId, match.floorId)
   if ((ioServer.sockets.adapter.rooms.get(room)?.size ?? 0) !== 1) return null
   const liveMatch = dispatchMatch(match.id, match.floorId)
-  const names = new Map(repo.listParticipants(liveMatch.tournamentId).map((p) => [p.id, p.name]))
-  const participants = [liveMatch.participantAId, liveMatch.participantBId]
-    .filter((id): id is string => !!id)
-    .map((id) => ({ id, name: names.get(id) ?? 'Unknown' }))
-  startLive(liveMatch)
+  const floorId = liveMatch.floorId
+  if (!floorId) return null
+  const floor = repo.getFloor(floorId)
+  if (!floor) return null
+  const participants = participantsFor(liveMatch)
+  const snapshot = createMatchSnapshot(liveMatch, participants)
+  const session = initializeFloorSession(floor, liveMatch, snapshot)
   ioServer.to(room).emit('match:assigned', { match: liveMatch, participants })
+  ioServer.to(room).emit('board:session', toBoardSession(session))
+  const state = deriveLiveMatchState(snapshot)
+  if (state) broadcastLive(liveMatch.tournamentId, state)
   broadcastMatch(liveMatch)
   broadcastSnapshot(liveMatch.tournamentId)
   return liveMatch
@@ -120,6 +186,81 @@ function dispatchQueuedFloorMatch(tournamentId: string, floorId: string): void {
     .listMatches(tournamentId)
     .find((match) => match.floorId === floorId && match.status === 'ready')
   if (next) dispatchFloorMatch(next)
+}
+
+function participantsFor(match: Match): { id: string; name: string }[] {
+  const names = new Map(repo.listParticipants(match.tournamentId).map((p) => [p.id, p.name]))
+  return [match.participantAId, match.participantBId]
+    .filter((id): id is string => !!id)
+    .map((id) => ({ id, name: names.get(id) ?? 'Unknown' }))
+}
+
+function createAssignmentSnapshot(match: Match): BoardGameSnapshot {
+  return createMatchSnapshot(match, participantsFor(match))
+}
+
+function toBoardSession(session: { snapshot: BoardGameSnapshot | null; revision: number }): {
+  snapshot: BoardGameSnapshot | null
+  revision: number
+} {
+  return { snapshot: session.snapshot, revision: session.revision }
+}
+
+function registeredFloor(socket: BoardSocket) {
+  if (!socket.data.floorId || !socket.data.tournamentId) return undefined
+  const floor = repo.getFloor(socket.data.floorId)
+  return floor?.tournamentId === socket.data.tournamentId ? floor : undefined
+}
+
+/**
+ * Tournament snapshots may only update the active match assigned to this exact floor.
+ * A null tournament field is valid for a board's local calculator, but cannot erase a
+ * live match session.
+ */
+function authorizeSnapshot(
+  socket: BoardSocket,
+  floorId: string,
+  snapshot: BoardGameSnapshot,
+  currentMatchId: string | null,
+): string | null | undefined {
+  const tournament = snapshot.tournament
+  if (!tournament) {
+    if (currentMatchId) {
+      const current = repo.getMatch(currentMatchId)
+      if (current?.status === 'live') {
+        socket.emit('error:message', 'an active match requires a tournament snapshot')
+        return undefined
+      }
+    }
+    return null
+  }
+
+  const match = repo.getMatch(tournament.activeMatchId)
+  if (!match || !canControlMatch(socket, match) || match.floorId !== floorId) return undefined
+  const participantIds = [match.participantAId, match.participantBId]
+  if (
+    participantIds.some((id) => !id) ||
+    participantIds[0] !== tournament.participantIds[0] ||
+    participantIds[1] !== tournament.participantIds[1] ||
+    snapshot.phase !== 'playing' ||
+    snapshot.players.length !== participantIds.length ||
+    tournament.legIndex !== match.legsA + match.legsB ||
+    tournament.legsA !== match.legsA ||
+    tournament.legsB !== match.legsB
+  ) {
+    socket.emit('error:message', 'snapshot does not match the assigned match')
+    return undefined
+  }
+  return match.id
+}
+
+function rejectSnapshot(
+  socket: BoardSocket,
+  reply: (response: { ok: false; message: string }) => void,
+  message: string,
+): void {
+  socket.emit('error:message', message)
+  reply({ ok: false, message })
 }
 
 function canControlMatch(socket: BoardSocket, match: Match | undefined): boolean {

@@ -37,6 +37,23 @@ export const floors = sqliteTable(
   (table) => [index('idx_floors_tournament').on(table.tournamentId)],
 )
 
+/** One durable board state per physical floor. Snapshot JSON is validated at the socket boundary. */
+export const floorSessions = sqliteTable(
+  'floor_sessions',
+  {
+    floorId: text('floor_id').primaryKey(),
+    tournamentId: text('tournament_id').notNull(),
+    matchId: text('match_id'),
+    snapshot: text('snapshot'),
+    revision: integer('revision').notNull().default(0),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('idx_floor_sessions_tournament').on(table.tournamentId),
+    index('idx_floor_sessions_match').on(table.matchId),
+  ],
+)
+
 export const stages = sqliteTable(
   'stages',
   {

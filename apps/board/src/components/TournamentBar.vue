@@ -1,148 +1,169 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useTournamentClient } from '../game/tournamentClient'
 
-// Compact panel shown on the setup screen for joining a server-hosted tournament.
-// Purely additive — ignoring it leaves the board in normal offline mode.
 const client = useTournamentClient()
-const { connected, serverUrl, tournaments, tournamentId, floors, floorId, assignment, errorMsg } =
-  client
+const open = ref(false)
+const host = ref('')
+const step = ref<'host' | 'tournament' | 'floor'>('host')
+const { connected, tournaments, floors, errorMsg } = client
+const hostLabel = computed(() => host.value || 'Host IP')
 
-const urlInput = ref(serverUrl.value)
-const expanded = ref(false)
-
+function key(value: string) {
+  if (value === 'back') host.value = host.value.slice(0, -1)
+  else if (value === 'clear') host.value = ''
+  else host.value += value
+}
 function connect() {
-  client.connect(urlInput.value)
+  client.connect(host.value)
+  step.value = 'tournament'
 }
-
-async function chooseTournament(event: Event) {
-  try {
-    await client.selectTournament((event.target as HTMLSelectElement).value)
-  } catch (err) {
-    // The client surfaces fetch errors in the panel without interrupting offline scoring.
-    void err
-  }
+async function chooseTournament(id: string) {
+  await client.selectTournament(id)
+  step.value = 'floor'
 }
-
-function chooseFloor(event: Event) {
-  client.selectFloor((event.target as HTMLSelectElement).value)
+function chooseFloor(id: string) {
+  client.selectFloor(id)
+  open.value = false
 }
 </script>
 
 <template>
-  <div class="tbar">
-    <button class="toggle" @click="expanded = !expanded">
-      {{ connected ? '🟢' : '⚪️' }} Tournament {{ expanded ? '▲' : '▼' }}
-    </button>
-
-    <div v-if="expanded" class="body">
-      <div class="line">
-        <input v-model="urlInput" placeholder="Host IP (e.g. 192.168.1.20)" />
-        <button @click="connect">{{ connected ? 'Reconnect' : 'Connect' }}</button>
-      </div>
-
-      <div v-if="connected" class="stack">
-        <select :value="tournamentId" @change="chooseTournament">
-          <option value="">Select tournament</option>
-          <option v-for="tournament in tournaments" :key="tournament.id" :value="tournament.id">
-            {{ tournament.name }}
-          </option>
-        </select>
-        <select :value="floorId" :disabled="!tournamentId" @change="chooseFloor">
-          <option value="">Select floor</option>
-          <option v-for="floor in floors" :key="floor.id" :value="floor.id">
-            {{ floor.name }}
-          </option>
-        </select>
-        <p v-if="floorId" class="hint">This board is the input device for the selected floor.</p>
-        <p v-if="assignment" class="hint">Match assigned — starting on the board.</p>
-      </div>
-
-      <p v-if="errorMsg" class="err">{{ errorMsg }}</p>
-    </div>
+  <button class="join" @click="open = true">Tournament connection</button>
+  <div v-if="open" class="wizard">
+    <section class="card">
+      <header>
+        <button
+          v-if="step !== 'host'"
+          class="back"
+          @click="step = step === 'floor' ? 'tournament' : 'host'"
+        >
+          Back
+        </button>
+        <h1>🎯 Join tournament</h1>
+      </header>
+      <template v-if="step === 'host'">
+        <p>Enter the tournament server IP</p>
+        <output>{{ hostLabel }}</output>
+        <div class="pad">
+          <button
+            v-for="n in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0']"
+            :key="n"
+            @click="key(n)"
+          >
+            {{ n }}</button
+          ><button @click="key('back')">⌫</button><button @click="key('clear')">Clear</button>
+        </div>
+        <button class="primary" :disabled="!host" @click="connect">Connect</button>
+      </template>
+      <template v-else-if="step === 'tournament'">
+        <p v-if="!connected">Connecting…</p>
+        <p v-else>Select tournament</p>
+        <button v-for="t in tournaments" :key="t.id" class="choice" @click="chooseTournament(t.id)">
+          {{ t.name }}
+        </button>
+      </template>
+      <template v-else>
+        <p>Select this board's floor</p>
+        <button
+          v-for="floor in floors"
+          :key="floor.id"
+          class="choice"
+          @click="chooseFloor(floor.id)"
+        >
+          {{ floor.name }}
+        </button>
+      </template>
+      <p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+      <button class="cancel" @click="open = false">Cancel</button>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.tbar {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.toggle {
-  background: rgba(30, 41, 59, 0.9);
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-weight: 700;
-  min-height: 44px;
+.join,
+.primary,
+.choice,
+.cancel,
+.back,
+.pad button {
+  min-height: 64px;
+  border: 0;
+  border-radius: 16px;
+  font: 800 24px inherit;
   cursor: pointer;
 }
-
-.body {
-  background: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 14px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: min(90vw, 360px);
-}
-
-.line {
-  display: flex;
-  gap: 8px;
-}
-
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-input,
-select {
-  flex: 1;
-  min-width: 0;
-  background: #0f172a;
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 10px;
-  padding: 10px;
-  min-height: 44px;
-}
-
-button {
+.join {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+  padding: 16px 22px;
   background: #334155;
   color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 10px;
-  padding: 10px 14px;
-  min-height: 44px;
-  font-weight: 600;
-  cursor: pointer;
 }
-
-button:disabled {
-  opacity: 0.5;
+.wizard {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  padding: 32px;
+  background: #060a14;
 }
-
-.hint {
+.card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #172033, #0e1524);
+  color: #e2e8f0;
+}
+.card header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.card h1 {
+  font-size: 38px;
+}
+.card p {
+  font-size: 22px;
   color: #94a3b8;
-  font-size: 14px;
 }
-
-.err {
-  color: #f87171;
-  margin: 0;
-  font-size: 14px;
+.card output {
+  padding: 18px;
+  border-radius: 14px;
+  background: #020617;
+  font-size: 32px;
+  text-align: center;
+}
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.pad button,
+.choice {
+  background: #334155;
+  color: #f1f5f9;
+}
+.primary {
+  background: linear-gradient(180deg, #22d3ee, #0891b2);
+  color: #04283b;
+}
+.choice {
+  min-height: 76px;
+  text-align: left;
+  padding: 20px;
+}
+.cancel,
+.back {
+  background: transparent;
+  color: #94a3b8;
+}
+.error {
+  color: #f87171 !important;
 }
 </style>

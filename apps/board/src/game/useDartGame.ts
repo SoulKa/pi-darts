@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import type { BoardGameSnapshot, BoardTournamentState } from '@pi-darts/shared'
 import { suggestCheckouts, type CheckoutRoute } from './checkout'
 
 export const THROWS_PER_TURN = 3
@@ -201,6 +202,49 @@ export function useDartGame() {
     history.value = []
   }
 
+  function exportSnapshot(tournament: BoardTournamentState | null): BoardGameSnapshot {
+    return {
+      phase: phase.value,
+      options: {
+        startScore: options.value.startScore === 501 ? 501 : 301,
+        outMode: options.value.outMode,
+      },
+      players: players.value.map((player) => ({ ...player, lastThrows: [...player.lastThrows] })),
+      currentPlayerIndex: currentPlayerIndex.value,
+      currentThrows: currentThrows.value.map((dart) => ({ ...dart })),
+      finishOrder: [...finishOrder.value],
+      bannerIndex: bannerIndex.value,
+      history: history.value.map((entry) => ({
+        players: entry.players.map((player) => ({ ...player, lastThrows: [...player.lastThrows] })),
+        currentPlayerIndex: entry.currentPlayerIndex,
+        currentThrows: entry.currentThrows.map((dart) => ({ ...dart })),
+        finishOrder: [...entry.finishOrder],
+        bannerIndex: entry.bannerIndex,
+      })),
+      tournament,
+    }
+  }
+
+  function restoreSnapshot(snapshot: BoardGameSnapshot): void {
+    phase.value = snapshot.phase
+    options.value = { ...snapshot.options }
+    players.value = snapshot.players.map((player) => ({
+      ...player,
+      lastThrows: [...player.lastThrows],
+    }))
+    currentPlayerIndex.value = snapshot.currentPlayerIndex
+    currentThrows.value = snapshot.currentThrows.map((dart) => ({ ...dart }))
+    finishOrder.value = [...snapshot.finishOrder]
+    bannerIndex.value = snapshot.bannerIndex
+    history.value = snapshot.history.map((entry) => ({
+      players: entry.players.map((player) => ({ ...player, lastThrows: [...player.lastThrows] })),
+      currentPlayerIndex: entry.currentPlayerIndex,
+      currentThrows: entry.currentThrows.map((dart) => ({ ...dart })),
+      finishOrder: [...entry.finishOrder],
+      bannerIndex: entry.bannerIndex,
+    }))
+  }
+
   return {
     phase,
     options,
@@ -221,5 +265,7 @@ export function useDartGame() {
     undo,
     startGame,
     backToSetup,
+    exportSnapshot,
+    restoreSnapshot,
   }
 }

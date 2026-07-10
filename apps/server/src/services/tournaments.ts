@@ -12,6 +12,7 @@ import type {
 } from '@pi-darts/shared'
 import { db } from '../db/client'
 import {
+  floorSessions,
   floors,
   groupMembers,
   groups,
@@ -47,6 +48,7 @@ export function deleteFloor(floorId: string): void {
   if (repo.listMatches(floor.tournamentId).some((match) => match.floorId === floorId)) {
     throw new Error('cannot remove a floor assigned to a match')
   }
+  db.delete(floorSessions).where(eq(floorSessions.floorId, floorId)).run()
   db.delete(floors).where(eq(floors.id, floorId)).run()
 }
 

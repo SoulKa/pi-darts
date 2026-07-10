@@ -21,10 +21,12 @@ const {
   showBanner,
   standings,
   throwDart,
-  continuePlaying,
-  undo,
+  continuePlaying: continuePlayingLocal,
+  undo: undoLocal,
   startGame,
   backToSetup,
+  exportSnapshot,
+  restoreSnapshot,
 } = useDartGame()
 
 // --- Tournament mode (additive; offline play is unaffected when inactive) ---
@@ -53,6 +55,22 @@ function startLeg() {
     startScore: m.startScore,
     outMode: m.outMode,
   })
+  syncTournamentState()
+}
+
+function syncTournamentState() {
+  const a = tour.assignment.value
+  const ids = matchIds.value
+  if (!a || !ids) return
+  tour.saveSnapshot(
+    exportSnapshot({
+      activeMatchId: a.match.id,
+      participantIds: ids,
+      legIndex: legIndex.value,
+      legsA: legsWon.value[0],
+      legsB: legsWon.value[1],
+    }),
+  )
 }
 
 // When the server assigns a match, enter tournament mode and start the first leg.
@@ -64,8 +82,17 @@ watch(
     legsWon.value = [a.match.legsA, a.match.legsB]
     legIndex.value = a.match.legsA + a.match.legsB
     tournamentMode.value = true
-    startLeg()
+    const restored = tour.session.value.snapshot
+    if (restored?.tournament?.activeMatchId === a.match.id) {
+      restoreSnapshot(restored)
+    } else {
+      startLeg()
+    }
   },
+)
+
+const awaitingTournamentMatch = computed(
+  () => !!tour.floorId.value && !tournamentMode.value,
 )
 
 // Record each dart, then mirror it to the server so overview screens update live.
@@ -74,7 +101,25 @@ function handleThrow(base: number, multiplier: Multiplier) {
   const throwerId = tournamentMode.value && ids ? ids[currentPlayerIndex.value] : null
   throwDart(base, multiplier)
   if (throwerId) tour.reportThrow(throwerId, base, multiplier)
+  if (tournamentMode.value) syncTournamentState()
 }
+
+function undo() {
+  undoLocal()
+  if (tournamentMode.value) syncTournamentState()
+}
+
+function continuePlaying() {
+  continuePlayingLocal()
+  if (tournamentMode.value) syncTournamentState()
+}
+
+watch(
+  () => tour.session.value.snapshot,
+  (snapshot) => {
+    if (snapshot) restoreSnapshot(snapshot)
+  },
+)
 
 // On a finished leg, report the winner; advance to the next leg or end the match.
 function reportLegAndContinue() {
@@ -137,7 +182,13 @@ const justFinishedPlace = computed(() =>
 <template>
   <template v-if="phase === 'setup'">
     <TournamentBar />
-    <SetupScreen @start="startGame" />
+    <section v-if="awaitingTournamentMatch" class="tournament-waiting">
+      <div class="waiting-mark">🎯</div>
+      <h1>Board connected</h1>
+      <p>This board is ready for its assigned tournament match.</p>
+      <p class="waiting-sub">Choose a match and floor in the tournament console.</p>
+    </section>
+    <SetupScreen v-else @start="startGame" />
   </template>
 
   <div v-else class="game">
@@ -224,6 +275,37 @@ const justFinishedPlace = computed(() =>
   padding: 20px;
   gap: 16px;
   position: relative;
+}
+
+.tournament-waiting {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 48px;
+  text-align: center;
+}
+
+.waiting-mark {
+  font-size: 92px;
+}
+
+.tournament-waiting h1 {
+  font-size: 42px;
+  color: #f1f5f9;
+}
+
+.tournament-waiting p {
+  font-size: 24px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.tournament-waiting .waiting-sub {
+  color: #94a3b8;
+  font-size: 20px;
 }
 
 .topbar {
