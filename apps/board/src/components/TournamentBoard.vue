@@ -171,7 +171,7 @@ function reportLegAndContinue() {
   >
     <template #result-actions>
       <button v-if="isGameOver" class="primary" @click="reportLegAndContinue">
-        Ergebnis an Server melden →
+        Ergebnis an Server melden →︎
       </button>
     </template>
   </GameScreen>

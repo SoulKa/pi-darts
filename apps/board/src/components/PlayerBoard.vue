@@ -67,7 +67,7 @@ const gridStyle = computed(() => ({
       <div class="top">
         <span class="name">{{ player.name }}</span>
         <span v-if="placeOf(index) !== -1" class="place">{{ PLACE_LABELS[placeOf(index)] }}</span>
-        <span v-else-if="isActive(index)" class="turn-tag">am Wurf</span>
+        <span v-else-if="isActive(index)" class="turn-tag">Wirft</span>
       </div>
 
       <div class="score" :class="{ done: player.score === 0 }">{{ player.score }}</div>

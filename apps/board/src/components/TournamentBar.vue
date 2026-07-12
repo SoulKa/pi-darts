@@ -75,7 +75,7 @@ onMounted(async () => {
             @click="key(n)"
           >
             {{ n }}</button
-          ><button @click="key('back')">⌫</button><button @click="key('clear')">Löschen</button>
+          ><button @click="key('back')">⌫︎</button><button @click="key('clear')">Löschen</button>
         </div>
         <button class="primary" :disabled="!host" @click="connect">Verbinden</button>
       </template>

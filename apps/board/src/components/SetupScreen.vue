@@ -154,7 +154,7 @@ function start() {
     <header class="head">
       <div class="head-row">
         <h1>🎯 {{ startScore }}</h1>
-        <button class="gear" aria-label="Spieloptionen" @click="showOptions = true">⚙️</button>
+        <button class="gear" aria-label="Spieloptionen" @click="showOptions = true">⚙︎</button>
       </div>
       <p class="tag">Match einrichten · {{ startScore }} · {{ outModeLabel }}</p>
     </header>
@@ -174,7 +174,7 @@ function start() {
           <button class="name-field" :class="{ empty: !p.name }" @click="editName(p)">
             {{ p.name || 'Zum Benennen tippen…' }}
           </button>
-          <button class="del" :disabled="roster.length <= 1" @click="removePlayer(p.id)">✕</button>
+          <button class="del" :disabled="roster.length <= 1" @click="removePlayer(p.id)">✕︎</button>
         </div>
       </div>
 
@@ -197,7 +197,7 @@ function start() {
         >
           <span class="rank">{{ placeLabel(i) }}</span>
           <span class="oname">{{ nameOf(id) }}</span>
-          <span class="remove">✕</span>
+          <span class="remove">✕︎</span>
         </button>
         <p v-if="order.length === 0" class="empty">Spieler der Reihenfolge nach antippen…</p>
       </div>
@@ -302,14 +302,14 @@ function start() {
 
 .gear {
   margin-left: auto;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(2, 6, 23, 0.5);
-  font-size: 28px;
-  cursor: pointer;
+  /* Standalone icon, not a button: no chrome, just a comfortable tap target. */
+  border: 0;
+  background: none;
+  padding: 6px;
+  font-size: 40px;
   line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
 }
 
 .gear:active {

@@ -81,7 +81,7 @@ const hint = computed(() => {
         :disabled="props.disabled"
         @click="toggleMultiplier(2)"
       >
-        Doppel
+        Double
       </button>
       <button
         class="key mod triple"
@@ -89,9 +89,9 @@ const hint = computed(() => {
         :disabled="props.disabled"
         @click="toggleMultiplier(3)"
       >
-        Dreifach
+        Triple
       </button>
-      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺ Rückgängig</button>
+      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺︎ Rückgängig</button>
     </div>
   </div>
 </template>

@@ -68,7 +68,7 @@ function confirmNewGame() {
   <div class="game">
     <header class="topbar">
       <h1>🎯 {{ options.startScore }}</h1>
-      <span class="subtitle">{{ options.startScore }} runter · {{ outModeLabel }} · 3 Darts</span>
+      <span class="subtitle">{{ options.startScore }} down · {{ outModeLabel }} · 3 Darts</span>
       <button v-if="allowNewGame" class="ghost-btn" @click="requestNewGame">Neues Spiel</button>
     </header>
 
@@ -119,7 +119,7 @@ function confirmNewGame() {
           </button>
           <slot name="result-actions" />
           <button class="secondary" :disabled="!canUndo" @click="emit('undo')">
-            ↺ Letzten Wurf rückgängig
+            ↺︎ Letzten Wurf rückgängig
           </button>
           <button v-if="allowNewGame" class="secondary" @click="requestNewGame">Neues Spiel</button>
         </div>
