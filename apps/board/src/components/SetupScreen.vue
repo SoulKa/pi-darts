@@ -16,10 +16,10 @@ const startScore = ref<number>(stored?.startScore ?? DEFAULT_OPTIONS.startScore)
 const outMode = ref<OutMode>(stored?.outMode ?? DEFAULT_OPTIONS.outMode)
 const showOptions = ref(false)
 
-const outModeLabel = computed(() => (outMode.value === 'double' ? 'Double out' : 'Single out'))
+const outModeLabel = computed(() => (outMode.value === 'double' ? 'Double-Out' : 'Single-Out'))
 
 const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80', '#fbbf24', '#fb7185']
-const PLACE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th']
+const PLACE_LABELS = ['1.', '2.', '3.', '4.', '5.', '6.']
 
 interface RosterPlayer {
   id: number
@@ -83,10 +83,10 @@ const canStart = computed(
 )
 
 const startLabel = computed(() => {
-  if (validPlayers.value.length !== selectedPlayers.value.length) return 'Name every player'
-  if (validPlayers.value.length < 2) return 'Add at least 2 players'
-  if (order.value.length < validPlayers.value.length) return 'Finish the order to start'
-  return 'Start Game'
+  if (validPlayers.value.length !== selectedPlayers.value.length) return 'Alle Spieler benennen'
+  if (validPlayers.value.length < 2) return 'Mindestens 2 Spieler hinzufügen'
+  if (order.value.length < validPlayers.value.length) return 'Reihenfolge festlegen zum Starten'
+  return 'Spiel starten'
 })
 
 function accent(id: number): string {
@@ -95,7 +95,7 @@ function accent(id: number): string {
 }
 
 function placeLabel(i: number): string {
-  return PLACE_LABELS[i] ?? `${i + 1}th`
+  return PLACE_LABELS[i] ?? `${i + 1}.`
 }
 
 function nameOf(id: number): string {
@@ -154,13 +154,13 @@ function start() {
     <header class="head">
       <div class="head-row">
         <h1>🎯 {{ startScore }}</h1>
-        <button class="gear" aria-label="Game options" @click="showOptions = true">⚙️</button>
+        <button class="gear" aria-label="Spieloptionen" @click="showOptions = true">⚙️</button>
       </div>
-      <p class="tag">Set up the match · {{ startScore }} · {{ outModeLabel }}</p>
+      <p class="tag">Match einrichten · {{ startScore }} · {{ outModeLabel }}</p>
     </header>
 
     <section class="panel">
-      <h2>Players</h2>
+      <h2>Spieler</h2>
 
       <div class="players">
         <div
@@ -172,20 +172,20 @@ function start() {
         >
           <button class="box" :class="{ ticked: p.selected }" @click="toggle(p)"></button>
           <button class="name-field" :class="{ empty: !p.name }" @click="editName(p)">
-            {{ p.name || 'Tap to name…' }}
+            {{ p.name || 'Zum Benennen tippen…' }}
           </button>
           <button class="del" :disabled="roster.length <= 1" @click="removePlayer(p.id)">✕</button>
         </div>
       </div>
 
-      <button class="add-btn" @click="addPlayer">＋ Add player</button>
+      <button class="add-btn" @click="addPlayer">＋ Spieler hinzufügen</button>
     </section>
 
     <section class="panel grow">
       <div class="panel-head">
-        <h2>Bull out — order of play</h2>
+        <h2>Bull out — Wurfreihenfolge</h2>
       </div>
-      <p class="help">Bull at the board, then tap players in the order they'll throw.</p>
+      <p class="help">Bull werfen, dann Spieler in ihrer Wurfreihenfolge antippen.</p>
 
       <div class="order-list">
         <button
@@ -199,7 +199,7 @@ function start() {
           <span class="oname">{{ nameOf(id) }}</span>
           <span class="remove">✕</span>
         </button>
-        <p v-if="order.length === 0" class="empty">Tap a player below to make them go first…</p>
+        <p v-if="order.length === 0" class="empty">Spieler der Reihenfolge nach antippen…</p>
       </div>
 
       <div v-if="validPlayers.length" class="pool">
@@ -224,17 +224,17 @@ function start() {
       v-if="editingPlayer"
       :model-value="editingPlayer.name"
       :maxlength="12"
-      label="Player name"
+      label="Spielername"
       @update:model-value="setEditingName"
       @close="closeKeyboard"
     />
 
     <div v-if="showOptions" class="options-overlay" @click.self="showOptions = false">
       <div class="options-modal">
-        <div class="options-title">Game options</div>
+        <div class="options-title">Spieloptionen</div>
 
         <div class="option">
-          <span class="option-label">Start score</span>
+          <span class="option-label">Startpunktzahl</span>
           <div class="segmented">
             <button
               v-for="s in START_SCORES"
@@ -249,26 +249,26 @@ function start() {
         </div>
 
         <div class="option">
-          <span class="option-label">Out mode</span>
+          <span class="option-label">Checkout-Modus</span>
           <div class="segmented">
             <button
               class="seg"
               :class="{ active: outMode === 'single' }"
               @click="outMode = 'single'"
             >
-              Single out
+              Single-Out
             </button>
             <button
               class="seg"
               :class="{ active: outMode === 'double' }"
               @click="outMode = 'double'"
             >
-              Double out
+              Double-Out
             </button>
           </div>
         </div>
 
-        <button class="options-done" @click="showOptions = false">Done</button>
+        <button class="options-done" @click="showOptions = false">Fertig</button>
       </div>
     </div>
   </Teleport>

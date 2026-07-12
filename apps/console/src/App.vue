@@ -5,7 +5,7 @@ import { RouterView, RouterLink } from 'vue-router'
 <template>
   <div class="console-app">
     <header class="console-topbar">
-      <RouterLink class="console-brand" to="/admin">🎯 Pi-Darts Console</RouterLink>
+      <RouterLink class="console-brand" to="/admin">🎯 Pi-Darts Konsole</RouterLink>
       <nav class="console-nav pd-row">
         <RouterLink to="/admin">Admin</RouterLink>
       </nav>

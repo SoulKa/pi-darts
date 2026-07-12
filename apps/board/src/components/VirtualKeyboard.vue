@@ -54,9 +54,9 @@ function toggleShift() {
 <template>
   <div class="kb">
     <div class="kb-head">
-      <span class="kb-label">{{ label || 'Enter name' }}</span>
+      <span class="kb-label">{{ label || 'Name eingeben' }}</span>
       <span class="kb-value">{{ modelValue || ' ' }}<span class="caret"></span></span>
-      <button class="done" @click="emit('close')">Done</button>
+      <button class="done" @click="emit('close')">Fertig</button>
     </div>
 
     <div class="kb-row">
@@ -70,7 +70,7 @@ function toggleShift() {
 
     <div class="kb-row">
       <button class="key wide" :class="{ armed: manualShift }" @click="toggleShift">⇧</button>
-      <button class="key space" @click="append(' ')">space</button>
+      <button class="key space" @click="append(' ')">Leerzeichen</button>
       <button class="key wide" @click="backspace">⌫</button>
     </div>
   </div>

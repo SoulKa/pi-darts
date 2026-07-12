@@ -7,7 +7,7 @@ const client = useTournamentClient()
 const host = ref('')
 const step = ref<'host' | 'tournament' | 'floor'>('host')
 const { connected, floorId, tournaments, floors, errorMsg } = client
-const hostLabel = computed(() => host.value || 'Host IP')
+const hostLabel = computed(() => host.value || 'Host-IP')
 
 function key(value: string) {
   if (value === 'back') host.value = host.value.slice(0, -1)
@@ -61,12 +61,12 @@ onMounted(async () => {
           class="back"
           @click="step = step === 'floor' ? 'tournament' : 'host'"
         >
-          Back
+          Zurück
         </button>
-        <h1>🎯 Join tournament</h1>
+        <h1>🎯 Turnier beitreten</h1>
       </header>
       <template v-if="step === 'host'">
-        <p>Enter the tournament server IP</p>
+        <p>IP des Turnier-Servers eingeben</p>
         <output>{{ hostLabel }}</output>
         <div class="pad">
           <button
@@ -75,19 +75,19 @@ onMounted(async () => {
             @click="key(n)"
           >
             {{ n }}</button
-          ><button @click="key('back')">⌫</button><button @click="key('clear')">Clear</button>
+          ><button @click="key('back')">⌫</button><button @click="key('clear')">Löschen</button>
         </div>
-        <button class="primary" :disabled="!host" @click="connect">Connect</button>
+        <button class="primary" :disabled="!host" @click="connect">Verbinden</button>
       </template>
       <template v-else-if="step === 'tournament'">
-        <p v-if="!connected">Connecting…</p>
-        <p v-else>Select tournament</p>
+        <p v-if="!connected">Verbindung wird hergestellt…</p>
+        <p v-else>Turnier auswählen</p>
         <button v-for="t in tournaments" :key="t.id" class="choice" @click="chooseTournament(t.id)">
           {{ t.name }}
         </button>
       </template>
       <template v-else>
-        <p>Select this board's floor</p>
+        <p>Feld für dieses Board auswählen</p>
         <button
           v-for="floor in floors"
           :key="floor.id"

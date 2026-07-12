@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
+import type { StageType } from '@pi-darts/shared'
 import { useTournamentFeed } from '../feed'
+
+const STAGE_TYPE_LABELS: Record<StageType, string> = {
+  group: 'Gruppe',
+  knockout: 'K.-o.',
+}
+const stageTypeLabel = (type: StageType) => STAGE_TYPE_LABELS[type] ?? type
 
 const props = defineProps<{ id: string }>()
 
@@ -29,7 +36,7 @@ const stageGroups = computed(() =>
   <div v-if="detail" class="overview">
     <header class="overview-heading">
       <div>
-        <p class="eyebrow">Tournament overview</p>
+        <p class="eyebrow">Turnierübersicht</p>
         <h1>{{ detail.tournament.name }}</h1>
       </div>
       <span
@@ -39,18 +46,18 @@ const stageGroups = computed(() =>
         ]"
       >
         <span class="connection-dot"></span>
-        {{ connected ? 'Live feed' : 'Offline' }}
+        {{ connected ? 'Live-Feed' : 'Offline' }}
       </span>
     </header>
 
     <section class="live-zone">
       <div class="live-zone-heading">
         <div>
-          <p class="eyebrow">Now playing</p>
-          <h2>Live scores</h2>
+          <p class="eyebrow">Jetzt am Spielen</p>
+          <h2>Live-Ergebnisse</h2>
         </div>
         <p class="pd-muted">
-          {{ liveMatches.length ? `${liveMatches.length} live` : 'Waiting for a board' }}
+          {{ liveMatches.length ? `${liveMatches.length} live` : 'Warten auf ein Board' }}
         </p>
       </div>
 
@@ -79,7 +86,7 @@ const stageGroups = computed(() =>
         </article>
       </div>
       <div v-else class="pd-panel pd-panel--compact live-empty">
-        <p class="pd-muted">No matches are currently in progress.</p>
+        <p class="pd-muted">Aktuell läuft kein Match.</p>
       </div>
     </section>
 
@@ -87,20 +94,20 @@ const stageGroups = computed(() =>
       <section class="pd-panel standings-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Rankings</p>
-            <h2>Standings</h2>
+            <p class="eyebrow">Rangliste</p>
+            <h2>Tabelle</h2>
           </div>
-          <span class="pd-muted">{{ standings.length }} players</span>
+          <span class="pd-muted">{{ standings.length }} Spieler</span>
         </div>
         <div class="standings-table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Player</th>
-                <th>P</th>
-                <th>W</th>
+                <th>Spieler</th>
+                <th>Sp</th>
+                <th>S</th>
                 <th>+/-</th>
-                <th>Pts</th>
+                <th>Pkt</th>
               </tr>
             </thead>
             <tbody>
@@ -119,10 +126,10 @@ const stageGroups = computed(() =>
       <section class="stages-area">
         <div class="panel-heading stages-area-heading">
           <div>
-            <p class="eyebrow">Draw</p>
-            <h2>Stages & results</h2>
+            <p class="eyebrow">Auslosung</p>
+            <h2>Phasen & Ergebnisse</h2>
           </div>
-          <span class="pd-muted">{{ stageGroups.length }} stages</span>
+          <span class="pd-muted">{{ stageGroups.length }} Phasen</span>
         </div>
         <div v-if="stageGroups.length" class="stage-grid">
           <section
@@ -133,9 +140,9 @@ const stageGroups = computed(() =>
             <div class="stage-card-heading">
               <div>
                 <h3>{{ stage.name }}</h3>
-                <p class="pd-muted">{{ stage.type }} · Bo{{ stage.bestOf }}</p>
+                <p class="pd-muted">{{ stageTypeLabel(stage.type) }} · Bo{{ stage.bestOf }}</p>
               </div>
-              <span class="match-count">{{ matches.length }} matches</span>
+              <span class="match-count">{{ matches.length }} Matches</span>
             </div>
             <div v-if="matches.length" class="match-list">
               <div v-for="m in matches" :key="m.id" class="match-row">
@@ -148,16 +155,16 @@ const stageGroups = computed(() =>
                 }}</span>
               </div>
             </div>
-            <p v-else class="pd-muted">Matches have not been generated.</p>
+            <p v-else class="pd-muted">Matches wurden noch nicht generiert.</p>
           </section>
         </div>
         <div v-else class="pd-panel pd-panel--compact">
-          <p class="pd-muted">Stages will appear here once they are configured.</p>
+          <p class="pd-muted">Phasen erscheinen hier, sobald sie konfiguriert sind.</p>
         </div>
       </section>
     </div>
   </div>
-  <p v-else class="pd-muted loading">Loading tournament dashboard…</p>
+  <p v-else class="pd-muted loading">Turnier-Dashboard wird geladen…</p>
 </template>
 
 <style scoped>

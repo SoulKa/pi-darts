@@ -13,7 +13,7 @@ const props = defineProps<{
 
 // One accent colour per player, keyed by index.
 const ACCENTS = ['#22d3ee', '#a78bfa', '#f472b6', '#4ade80', '#fbbf24', '#fb7185']
-const PLACE_LABELS = ['1st', '2nd', '3rd', '4th']
+const PLACE_LABELS = ['1.', '2.', '3.', '4.']
 
 const slots = Array.from({ length: THROWS_PER_TURN }, (_, i) => i)
 
@@ -67,7 +67,7 @@ const gridStyle = computed(() => ({
       <div class="top">
         <span class="name">{{ player.name }}</span>
         <span v-if="placeOf(index) !== -1" class="place">{{ PLACE_LABELS[placeOf(index)] }}</span>
-        <span v-else-if="isActive(index)" class="turn-tag">throwing</span>
+        <span v-else-if="isActive(index)" class="turn-tag">am Wurf</span>
       </div>
 
       <div class="score" :class="{ done: player.score === 0 }">{{ player.score }}</div>

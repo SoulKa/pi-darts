@@ -48,10 +48,10 @@ const checkoutText = computed(() =>
 const showingCheckout = computed(() => multiplier.value === 1 && checkoutText.value !== '')
 
 const hint = computed(() => {
-  if (multiplier.value === 2) return 'DOUBLE armed – tap a number'
-  if (multiplier.value === 3) return 'TRIPLE armed – tap a number'
+  if (multiplier.value === 2) return 'DOPPEL aktiv – Zahl antippen'
+  if (multiplier.value === 3) return 'DREIFACH aktiv – Zahl antippen'
   if (checkoutText.value) return checkoutText.value
-  return 'Tap the number that was hit'
+  return 'Getroffene Zahl antippen'
 })
 </script>
 
@@ -81,7 +81,7 @@ const hint = computed(() => {
         :disabled="props.disabled"
         @click="toggleMultiplier(2)"
       >
-        Double
+        Doppel
       </button>
       <button
         class="key mod triple"
@@ -89,9 +89,9 @@ const hint = computed(() => {
         :disabled="props.disabled"
         @click="toggleMultiplier(3)"
       >
-        Triple
+        Dreifach
       </button>
-      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺ Undo</button>
+      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺ Rückgängig</button>
     </div>
   </div>
 </template>

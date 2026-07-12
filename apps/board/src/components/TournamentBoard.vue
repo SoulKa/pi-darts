@@ -45,8 +45,8 @@ function startLeg() {
   const nameById = new Map(a.participants.map((p) => [p.id, p.name]))
   startGame({
     names: [
-      nameById.get(m.participantAId ?? '') ?? 'Player A',
-      nameById.get(m.participantBId ?? '') ?? 'Player B',
+      nameById.get(m.participantAId ?? '') ?? 'Spieler A',
+      nameById.get(m.participantBId ?? '') ?? 'Spieler B',
     ],
     startScore: m.startScore,
     outMode: m.outMode,
@@ -145,9 +145,9 @@ function reportLegAndContinue() {
     <TournamentBar />
     <section v-if="awaitingTournamentMatch" class="tournament-waiting">
       <div class="waiting-mark">🎯</div>
-      <h1>Board connected</h1>
-      <p>This board is ready for its assigned tournament match.</p>
-      <p class="waiting-sub">Choose a match and floor in the tournament console.</p>
+      <h1>Board verbunden</h1>
+      <p>Dieses Board ist bereit für sein zugewiesenes Turniermatch.</p>
+      <p class="waiting-sub">Match und Feld in der Turnier-Konsole auswählen.</p>
     </section>
   </template>
 
@@ -171,7 +171,7 @@ function reportLegAndContinue() {
   >
     <template #result-actions>
       <button v-if="isGameOver" class="primary" @click="reportLegAndContinue">
-        Report result to server →
+        Ergebnis an Server melden →
       </button>
     </template>
   </GameScreen>

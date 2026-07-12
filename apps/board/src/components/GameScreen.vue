@@ -30,14 +30,14 @@ const emit = defineEmits<{
   'new-game': []
 }>()
 
-const PLACE_LABELS = ['1st', '2nd', '3rd', '4th', '5th', '6th']
+const PLACE_LABELS = ['1.', '2.', '3.', '4.', '5.', '6.']
 
 function placeLabel(i: number): string {
-  return PLACE_LABELS[i] ?? `${i + 1}th`
+  return PLACE_LABELS[i] ?? `${i + 1}.`
 }
 
 const outModeLabel = computed(() =>
-  props.options.outMode === 'double' ? 'double out' : 'single out',
+  props.options.outMode === 'double' ? 'Double-Out' : 'Single-Out',
 )
 
 const justFinishedName = computed(() =>
@@ -68,8 +68,8 @@ function confirmNewGame() {
   <div class="game">
     <header class="topbar">
       <h1>🎯 {{ options.startScore }}</h1>
-      <span class="subtitle">{{ options.startScore }} down · {{ outModeLabel }} · 3 darts</span>
-      <button v-if="allowNewGame" class="ghost-btn" @click="requestNewGame">New Game</button>
+      <span class="subtitle">{{ options.startScore }} runter · {{ outModeLabel }} · 3 Darts</span>
+      <button v-if="allowNewGame" class="ghost-btn" @click="requestNewGame">Neues Spiel</button>
     </header>
 
     <section class="board-area">
@@ -97,31 +97,31 @@ function confirmNewGame() {
     <div v-if="showBanner" class="overlay">
       <div class="modal">
         <template v-if="isGameOver">
-          <div class="modal-title">🏆 Game Over</div>
+          <div class="modal-title">🏆 Spiel vorbei</div>
           <ol class="standings">
             <li v-for="(p, i) in standings" :key="p.name" :class="{ champ: i === 0 }">
               <span class="rank">{{ placeLabel(i) }}</span>
               <span class="who">{{ p.name }}</span>
-              <span v-if="p.score > 0" class="pts">{{ p.score }} left</span>
+              <span v-if="p.score > 0" class="pts">{{ p.score }} übrig</span>
             </li>
           </ol>
         </template>
 
         <template v-else>
-          <div class="badge">{{ justFinishedPlace }} place</div>
-          <div class="modal-title">🎯 {{ justFinishedName }} is out!</div>
-          <p class="modal-sub">The others keep throwing for the next spot.</p>
+          <div class="badge">{{ justFinishedPlace }} Platz</div>
+          <div class="modal-title">🎯 {{ justFinishedName }} ist draußen!</div>
+          <p class="modal-sub">Die anderen werfen weiter um den nächsten Platz.</p>
         </template>
 
         <div class="modal-actions">
           <button v-if="!isGameOver" class="primary" @click="emit('continue')">
-            Continue Playing
+            Weiterspielen
           </button>
           <slot name="result-actions" />
           <button class="secondary" :disabled="!canUndo" @click="emit('undo')">
-            ↺ Undo last throw
+            ↺ Letzten Wurf rückgängig
           </button>
-          <button v-if="allowNewGame" class="secondary" @click="requestNewGame">New Game</button>
+          <button v-if="allowNewGame" class="secondary" @click="requestNewGame">Neues Spiel</button>
         </div>
       </div>
     </div>
@@ -129,11 +129,11 @@ function confirmNewGame() {
     <!-- Confirm before discarding an in-progress game -->
     <div v-if="confirmingNewGame" class="overlay confirm-overlay">
       <div class="modal">
-        <div class="modal-title">Start a new game?</div>
-        <p class="modal-sub">The current match will be lost.</p>
+        <div class="modal-title">Neues Spiel starten?</div>
+        <p class="modal-sub">Das aktuelle Match geht verloren.</p>
         <div class="modal-actions">
-          <button class="primary" @click="confirmNewGame">New Game</button>
-          <button class="secondary" @click="confirmingNewGame = false">Cancel</button>
+          <button class="primary" @click="confirmNewGame">Neues Spiel</button>
+          <button class="secondary" @click="confirmingNewGame = false">Abbrechen</button>
         </div>
       </div>
     </div>

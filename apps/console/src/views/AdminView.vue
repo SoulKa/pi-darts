@@ -6,6 +6,26 @@ import { useTournamentFeed } from '../feed'
 
 type AdminTab = 'setup' | 'tournament'
 
+const STATUS_LABELS: Record<TournamentStatus, string> = {
+  setup: 'Einrichtung',
+  active: 'Aktiv',
+  completed: 'Abgeschlossen',
+  cancelled: 'Abgebrochen',
+}
+const statusLabel = (status: TournamentStatus) => STATUS_LABELS[status] ?? status
+
+const STAGE_TYPE_LABELS: Record<StageType, string> = {
+  group: 'Gruppe',
+  knockout: 'K.-o.',
+}
+const stageTypeLabel = (type: StageType) => STAGE_TYPE_LABELS[type] ?? type
+
+const OUT_MODE_LABELS: Record<OutMode, string> = {
+  single: 'Single-Out',
+  double: 'Double-Out',
+}
+const outModeLabel = (mode: OutMode) => OUT_MODE_LABELS[mode] ?? mode
+
 const tournaments = ref<Tournament[]>([])
 const feed = useTournamentFeed()
 const { detail, live } = feed
@@ -57,7 +77,7 @@ const nameOf = computed(() => {
 })
 const floorNameOf = computed(() => {
   const map = new Map((detail.value?.floors ?? []).map((floor) => [floor.id, floor.name]))
-  return (id: string | null) => (id ? (map.get(id) ?? '—') : 'Unassigned')
+  return (id: string | null) => (id ? (map.get(id) ?? '—') : 'Nicht zugewiesen')
 })
 
 const stagesWithMatches = computed(() =>
@@ -228,14 +248,14 @@ onUnmounted(() => feed.close())
     <div class="admin-shell">
       <aside class="tournament-rail pd-panel">
         <div class="rail-heading">
-          <p class="eyebrow">Tournament desk</p>
-          <h1>Tournaments</h1>
+          <p class="eyebrow">Turnierverwaltung</p>
+          <h1>Turniere</h1>
         </div>
         <div class="create-tournament">
           <input
             v-model="newTournamentName"
-            aria-label="New tournament name"
-            placeholder="New tournament name"
+            aria-label="Name des neuen Turniers"
+            placeholder="Name des neuen Turniers"
             @keyup.enter="createTournament"
           />
           <button
@@ -243,10 +263,10 @@ onUnmounted(() => feed.close())
             :disabled="!newTournamentName.trim()"
             @click="createTournament"
           >
-            Create
+            Erstellen
           </button>
         </div>
-        <div class="tournament-list" aria-label="Tournament selector">
+        <div class="tournament-list" aria-label="Turnierauswahl">
           <button
             v-for="tournament in tournaments"
             :key="tournament.id"
@@ -254,10 +274,10 @@ onUnmounted(() => feed.close())
             @click="select(tournament.id)"
           >
             <span>{{ tournament.name }}</span>
-            <small>{{ tournament.status }}</small>
+            <small>{{ statusLabel(tournament.status) }}</small>
           </button>
           <p v-if="!tournaments.length" class="pd-muted rail-empty">
-            Create a tournament to begin.
+            Erstelle ein Turnier, um zu beginnen.
           </p>
         </div>
       </aside>
@@ -266,35 +286,35 @@ onUnmounted(() => feed.close())
         <header class="workbench-heading">
           <div>
             <p class="eyebrow">
-              {{ activeTab === 'setup' ? 'Tournament preparation' : 'Tournament operations' }}
+              {{ activeTab === 'setup' ? 'Turniervorbereitung' : 'Turnierbetrieb' }}
             </p>
             <div class="title-row">
               <h2>{{ detail.tournament.name }}</h2>
-              <span class="status">{{ detail.tournament.status }}</span>
+              <span class="status">{{ statusLabel(detail.tournament.status) }}</span>
             </div>
           </div>
           <div class="heading-actions">
             <RouterLink :to="`/view/${detail.tournament.id}`" target="_blank">
-              Open overview ↗
+              Übersicht öffnen ↗
             </RouterLink>
             <template v-if="detail.tournament.status === 'cancelled'">
-              <button @click="reactivateTournament">Reactivate</button>
-              <button class="pd-button--danger" @click="confirming = 'delete'">Delete</button>
+              <button @click="reactivateTournament">Reaktivieren</button>
+              <button class="pd-button--danger" @click="confirming = 'delete'">Löschen</button>
             </template>
             <button v-else class="pd-button--danger" @click="confirming = 'cancel'">
-              Cancel tournament
+              Turnier abbrechen
             </button>
           </div>
         </header>
 
-        <div class="admin-tabs" role="tablist" aria-label="Tournament workspace">
+        <div class="admin-tabs" role="tablist" aria-label="Turnier-Arbeitsbereich">
           <button
             :class="{ 'admin-tab--active': activeTab === 'setup' }"
             role="tab"
             :aria-selected="activeTab === 'setup'"
             @click="activeTab = 'setup'"
           >
-            Setup
+            Einrichtung
           </button>
           <button
             :class="{ 'admin-tab--active': activeTab === 'tournament' }"
@@ -302,60 +322,60 @@ onUnmounted(() => feed.close())
             :aria-selected="activeTab === 'tournament'"
             @click="activeTab = 'tournament'"
           >
-            Tournament
+            Turnier
           </button>
         </div>
 
         <section v-if="detail.tournament.status === 'cancelled'" class="cancelled-summary pd-panel">
           <div>
-            <p class="eyebrow">Tournament cancelled</p>
-            <h2>Boards won't receive new matches.</h2>
+            <p class="eyebrow">Turnier abgebrochen</p>
+            <h2>Boards erhalten keine neuen Matches.</h2>
           </div>
-          <p class="pd-muted">Reactivate to resume, or delete to remove it permanently.</p>
+          <p class="pd-muted">Reaktivieren zum Fortsetzen oder löschen, um es dauerhaft zu entfernen.</p>
         </section>
 
         <section v-if="activeTab === 'setup'" class="setup-workflow">
           <header class="workflow-heading">
             <div>
-              <p class="eyebrow">Guided preparation</p>
-              <h2>Build the playing order</h2>
+              <p class="eyebrow">Geführte Vorbereitung</p>
+              <h2>Spielreihenfolge aufbauen</h2>
             </div>
-            <p class="pd-muted">Add the roster, prepare boards, then create and generate stages.</p>
+            <p class="pd-muted">Teilnehmer hinzufügen, Boards vorbereiten, dann Phasen erstellen und generieren.</p>
           </header>
 
           <section class="pd-panel setup-step">
             <div class="step-heading">
               <span class="step-number">1</span>
               <div>
-                <p class="eyebrow">Roster</p>
+                <p class="eyebrow">Teilnehmer</p>
                 <h3>
-                  Players <span class="count">{{ detail.participants.length }}</span>
+                  Spieler <span class="count">{{ detail.participants.length }}</span>
                 </h3>
               </div>
             </div>
             <ul v-if="detail.participants.length" class="players">
               <li v-for="participant in detail.participants" :key="participant.id">
                 <span>{{ participant.name }}</span>
-                <span v-if="participant.seed" class="pd-muted">seed {{ participant.seed }}</span>
+                <span v-if="participant.seed" class="pd-muted">Setzplatz {{ participant.seed }}</span>
                 <button
                   class="remove-button"
-                  aria-label="Remove player"
+                  aria-label="Spieler entfernen"
                   @click="removeParticipant(participant.id)"
                 >
                   ✕
                 </button>
               </li>
             </ul>
-            <p v-else class="pd-muted">Add every player before generating the first stage.</p>
+            <p v-else class="pd-muted">Alle Spieler hinzufügen, bevor die erste Phase generiert wird.</p>
             <div class="player-create">
               <input
                 v-model="newParticipant.name"
-                placeholder="Player name"
+                placeholder="Spielername"
                 @keyup.enter="addParticipant"
               />
-              <input v-model="newParticipant.seed" aria-label="Seed" placeholder="Seed" />
+              <input v-model="newParticipant.seed" aria-label="Setzplatz" placeholder="Setzplatz" />
               <button :disabled="!newParticipant.name.trim()" @click="addParticipant">
-                Add player
+                Spieler hinzufügen
               </button>
             </div>
           </section>
@@ -366,17 +386,17 @@ onUnmounted(() => feed.close())
               <div>
                 <p class="eyebrow">Boards</p>
                 <h3>
-                  Floors <span class="count">{{ detail.floors.length }}</span>
+                  Felder <span class="count">{{ detail.floors.length }}</span>
                 </h3>
               </div>
             </div>
-            <p class="pd-muted">Each floor accepts one connected board.</p>
+            <p class="pd-muted">Jedes Feld nimmt ein verbundenes Board auf.</p>
             <div v-if="detail.floors.length" class="floor-list">
               <span v-for="floor in detail.floors" :key="floor.id" class="floor-chip">
                 {{ floor.name }}
                 <button
                   class="remove-button"
-                  aria-label="Remove floor"
+                  aria-label="Feld entfernen"
                   @click="removeFloor(floor.id)"
                 >
                   ✕
@@ -384,8 +404,8 @@ onUnmounted(() => feed.close())
               </span>
             </div>
             <div class="inline-create">
-              <input v-model="newFloorName" placeholder="Floor name" @keyup.enter="addFloor" />
-              <button :disabled="!newFloorName.trim()" @click="addFloor">Add floor</button>
+              <input v-model="newFloorName" placeholder="Feldname" @keyup.enter="addFloor" />
+              <button :disabled="!newFloorName.trim()" @click="addFloor">Feld hinzufügen</button>
             </div>
           </section>
 
@@ -394,44 +414,44 @@ onUnmounted(() => feed.close())
               <span class="step-number">3</span>
               <div>
                 <p class="eyebrow">Format</p>
-                <h3>Create a stage</h3>
+                <h3>Phase erstellen</h3>
               </div>
             </div>
             <div class="stage-form">
-              <input v-model="newStage.name" placeholder="Stage name (e.g. Groups)" />
-              <select v-model="newStage.type" aria-label="Stage type">
-                <option value="group">Group (round-robin)</option>
-                <option value="knockout">Knockout (single elim.)</option>
+              <input v-model="newStage.name" placeholder="Phasenname (z. B. Gruppen)" />
+              <select v-model="newStage.type" aria-label="Phasentyp">
+                <option value="group">Gruppe (Jeder gegen jeden)</option>
+                <option value="knockout">K.-o. (einfaches Ausscheiden)</option>
               </select>
               <label>
                 <span>Best of</span>
                 <input v-model="newStage.bestOf" aria-label="Best of" />
               </label>
-              <select v-model="newStage.startScore" aria-label="Starting score">
+              <select v-model="newStage.startScore" aria-label="Startpunktzahl">
                 <option :value="301">301</option>
                 <option :value="501">501</option>
               </select>
-              <select v-model="newStage.outMode" aria-label="Checkout mode">
-                <option value="single">Single out</option>
-                <option value="double">Double out</option>
+              <select v-model="newStage.outMode" aria-label="Checkout-Modus">
+                <option value="single">Single-Out</option>
+                <option value="double">Double-Out</option>
               </select>
-              <button :disabled="!newStage.name.trim()" @click="createStage">Add stage</button>
+              <button :disabled="!newStage.name.trim()" @click="createStage">Phase hinzufügen</button>
             </div>
           </section>
 
           <section class="schedule-step">
             <div class="workflow-heading">
               <div>
-                <p class="eyebrow">Schedule</p>
-                <h2>Generate stages</h2>
+                <p class="eyebrow">Zeitplan</p>
+                <h2>Phasen generieren</h2>
               </div>
               <div class="generation-options pd-muted">
                 <label
-                  >Groups <input v-model="genOpts.groupCount" aria-label="Number of groups"
+                  >Gruppen <input v-model="genOpts.groupCount" aria-label="Anzahl der Gruppen"
                 /></label>
                 <label>
-                  Qualifiers / group
-                  <input v-model="genOpts.qualifiersPerGroup" aria-label="Qualifiers per group" />
+                  Qualifikanten / Gruppe
+                  <input v-model="genOpts.qualifiersPerGroup" aria-label="Qualifikanten pro Gruppe" />
                 </label>
               </div>
             </div>
@@ -444,8 +464,8 @@ onUnmounted(() => feed.close())
                 <div>
                   <h3>{{ stage.name }}</h3>
                   <p class="pd-muted">
-                    {{ stage.type }} · Bo{{ stage.bestOf }} · {{ stage.startScore }} ·
-                    {{ stage.outMode }} out
+                    {{ stageTypeLabel(stage.type) }} · Bo{{ stage.bestOf }} · {{ stage.startScore }} ·
+                    {{ outModeLabel(stage.outMode) }}
                   </p>
                 </div>
                 <button
@@ -453,12 +473,12 @@ onUnmounted(() => feed.close())
                   :disabled="matches.length > 0"
                   @click="generate(stage.id, stage.type)"
                 >
-                  {{ matches.length ? `${matches.length} matches generated` : 'Generate stage' }}
+                  {{ matches.length ? `${matches.length} Matches generiert` : 'Phase generieren' }}
                 </button>
               </article>
             </div>
             <div v-else class="pd-panel pd-panel--compact empty-stages">
-              <p class="pd-muted">Add a stage to begin building the tournament schedule.</p>
+              <p class="pd-muted">Füge eine Phase hinzu, um den Turnierplan aufzubauen.</p>
             </div>
           </section>
         </section>
@@ -469,19 +489,19 @@ onUnmounted(() => feed.close())
             class="completed-summary pd-panel"
           >
             <div>
-              <p class="eyebrow">Tournament complete</p>
-              <h2>All scheduled matches are complete.</h2>
+              <p class="eyebrow">Turnier abgeschlossen</p>
+              <h2>Alle geplanten Matches sind abgeschlossen.</h2>
             </div>
-            <strong>{{ completedMatches.length }} matches played</strong>
+            <strong>{{ completedMatches.length }} Matches gespielt</strong>
           </section>
 
           <section class="operations-surface">
             <div class="operations-heading">
               <div>
-                <p class="eyebrow">Floor control</p>
-                <h2>Ready to play</h2>
+                <p class="eyebrow">Feldsteuerung</p>
+                <h2>Spielbereit</h2>
               </div>
-              <span class="ready-count">{{ readyMatches.length }} ready</span>
+              <span class="ready-count">{{ readyMatches.length }} bereit</span>
             </div>
             <div v-if="readyMatches.length" class="ready-match-grid">
               <article v-for="match in readyMatches" :key="match.id" class="pd-panel ready-match">
@@ -489,7 +509,7 @@ onUnmounted(() => feed.close())
                   <span>{{
                     stagesWithMatches.find((item) => item.stage.id === match.stageId)?.stage.name
                   }}</span>
-                  <span>Round {{ match.round + 1 }}</span>
+                  <span>Runde {{ match.round + 1 }}</span>
                 </div>
                 <div class="ready-matchup">
                   <strong>{{ nameOf(match.participantAId) }}</strong>
@@ -497,16 +517,16 @@ onUnmounted(() => feed.close())
                   <strong>{{ nameOf(match.participantBId) }}</strong>
                 </div>
                 <p class="pd-muted">
-                  {{ match.startScore }} · {{ match.outMode }} out · best of {{ match.bestOf }}
+                  {{ match.startScore }} · {{ outModeLabel(match.outMode) }} · Best of {{ match.bestOf }}
                 </p>
                 <label class="floor-select">
-                  <span>Play on</span>
+                  <span>Spielen auf</span>
                   <select
                     :value="match.floorId ?? ''"
                     :disabled="!detail.floors.length"
                     @change="assignFloor(match.id, $event)"
                   >
-                    <option value="">Select floor</option>
+                    <option value="">Feld auswählen</option>
                     <option v-for="floor in detail.floors" :key="floor.id" :value="floor.id">
                       {{ floor.name }}
                     </option>
@@ -518,8 +538,8 @@ onUnmounted(() => feed.close())
               <p class="pd-muted">
                 {{
                   detail.tournament.status === 'completed'
-                    ? 'No matches remain.'
-                    : 'No match is ready yet. Watch stage progress below for the next release.'
+                    ? 'Keine Matches mehr übrig.'
+                    : 'Noch kein Match bereit. Beobachte unten den Phasenfortschritt für die nächste Freigabe.'
                 }}
               </p>
             </div>
@@ -529,8 +549,8 @@ onUnmounted(() => feed.close())
             <article class="pd-panel pd-panel--compact status-panel">
               <div class="status-panel-heading">
                 <div>
-                  <p class="eyebrow">Live boards</p>
-                  <h3>{{ liveMatches.length ? `${liveMatches.length} in play` : 'Waiting' }}</h3>
+                  <p class="eyebrow">Aktive Boards</p>
+                  <h3>{{ liveMatches.length ? `${liveMatches.length} im Spiel` : 'Warten' }}</h3>
                 </div>
               </div>
               <div v-if="liveMatches.length" class="live-match-list">
@@ -546,37 +566,37 @@ onUnmounted(() => feed.close())
                   <small>{{ floorNameOf(match.floorId) }}</small>
                 </div>
               </div>
-              <p v-else class="pd-muted">No board is scoring a match right now.</p>
+              <p v-else class="pd-muted">Gerade wertet kein Board ein Match aus.</p>
             </article>
 
             <article class="pd-panel pd-panel--compact status-panel">
-              <p class="eyebrow">Match queue</p>
+              <p class="eyebrow">Match-Warteschlange</p>
               <div class="queue-counts">
                 <div>
                   <strong>{{ assignedMatches.length }}</strong>
-                  <span>assigned</span>
+                  <span>zugewiesen</span>
                 </div>
                 <div>
                   <strong>{{ queuedMatches.length }}</strong>
-                  <span>queued</span>
+                  <span>in Warteschlange</span>
                 </div>
                 <div>
                   <strong>{{ completedMatches.length }}</strong>
-                  <span>complete</span>
+                  <span>abgeschlossen</span>
                 </div>
               </div>
-              <p class="pd-muted">Assigned matches stay in Ready until their board claims them.</p>
+              <p class="pd-muted">Zugewiesene Matches bleiben auf „Spielbereit“, bis ihr Board sie übernimmt.</p>
             </article>
           </section>
 
           <section class="stage-progress">
             <div class="operations-heading">
               <div>
-                <p class="eyebrow">Tournament progress</p>
-                <h2>Stages</h2>
+                <p class="eyebrow">Turnierfortschritt</p>
+                <h2>Phasen</h2>
               </div>
               <span class="pd-muted"
-                >{{ completedMatches.length }} / {{ detail.matches.length }} complete</span
+                >{{ completedMatches.length }} / {{ detail.matches.length }} abgeschlossen</span
               >
             </div>
             <div v-if="stagesWithMatches.length" class="stage-progress-list">
@@ -588,7 +608,7 @@ onUnmounted(() => feed.close())
                 <div class="progress-card-heading">
                   <div>
                     <h3>{{ stage.name }}</h3>
-                    <p class="pd-muted">{{ stage.type }} · Bo{{ stage.bestOf }}</p>
+                    <p class="pd-muted">{{ stageTypeLabel(stage.type) }} · Bo{{ stage.bestOf }}</p>
                   </div>
                   <span>{{ completed }}/{{ matches.length || '—' }}</span>
                 </div>
@@ -598,21 +618,21 @@ onUnmounted(() => feed.close())
                 <p class="pd-muted">
                   {{
                     matches.length
-                      ? `${ready} ready · ${liveCount} live · ${completed} complete`
-                      : 'Waiting to be generated'
+                      ? `${ready} bereit · ${liveCount} live · ${completed} abgeschlossen`
+                      : 'Wartet auf Generierung'
                   }}
                 </p>
                 <button
                   v-if="!matches.length && detail.tournament.status !== 'completed'"
                   @click="generate(stage.id, stage.type)"
                 >
-                  Generate {{ stage.name }}
+                  {{ stage.name }} generieren
                 </button>
               </article>
             </div>
             <div v-else class="pd-panel pd-panel--compact empty-stages">
               <p class="pd-muted">
-                No stages have been created. Switch to Setup to prepare the draw.
+                Es wurden noch keine Phasen erstellt. Wechsle zu „Einrichtung“, um die Auslosung vorzubereiten.
               </p>
             </div>
           </section>
@@ -620,10 +640,10 @@ onUnmounted(() => feed.close())
       </section>
 
       <section v-else class="empty-workbench pd-panel">
-        <p class="eyebrow">Tournament workbench</p>
-        <h2>Select a tournament</h2>
+        <p class="eyebrow">Turnier-Arbeitsbereich</p>
+        <h2>Turnier auswählen</h2>
         <p class="pd-muted">
-          Choose a tournament from the rail or create a new one to configure it.
+          Wähle links ein Turnier aus oder erstelle ein neues, um es zu konfigurieren.
         </p>
       </section>
     </div>
@@ -631,19 +651,19 @@ onUnmounted(() => feed.close())
     <div v-if="confirming" class="pd-overlay" @click.self="confirming = null">
       <div class="pd-modal confirm-modal" role="dialog" aria-modal="true">
         <h2>
-          {{ confirming === 'cancel' ? 'Cancel this tournament?' : 'Delete this tournament?' }}
+          {{ confirming === 'cancel' ? 'Dieses Turnier abbrechen?' : 'Dieses Turnier löschen?' }}
         </h2>
         <p class="pd-muted">
           {{
             confirming === 'cancel'
-              ? 'Boards will stop receiving new matches. You can reactivate it later.'
-              : 'All players, stages, matches and scores are permanently removed. This cannot be undone.'
+              ? 'Boards erhalten keine neuen Matches mehr. Du kannst es später reaktivieren.'
+              : 'Alle Spieler, Phasen, Matches und Ergebnisse werden dauerhaft entfernt. Dies kann nicht rückgängig gemacht werden.'
           }}
         </p>
         <div class="modal-actions">
-          <button @click="confirming = null">Keep it</button>
+          <button @click="confirming = null">Behalten</button>
           <button class="pd-button--danger" @click="confirmProceed">
-            {{ confirming === 'cancel' ? 'Cancel tournament' : 'Delete tournament' }}
+            {{ confirming === 'cancel' ? 'Turnier abbrechen' : 'Turnier löschen' }}
           </button>
         </div>
       </div>
