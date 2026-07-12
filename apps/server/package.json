@@ -1,0 +1,34 @@
+{
+  "name": "@pi-darts/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:check": "drizzle-kit check --config drizzle.config.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "11.3.0",
+    "@fastify/static": "9.3.0",
+    "@pi-darts/shared": "*",
+    "better-sqlite3": "12.11.1",
+    "drizzle-orm": "0.45.2",
+    "fastify": "5.10.0",
+    "nanoid": "5.1.16",
+    "socket.io": "4.8.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "^24.13.3",
+    "drizzle-kit": "0.31.10",
+    "tsx": "4.23.0",
+    "typescript": "~6.0.0",
+    "vitest": "4.1.10"
+  }
+}

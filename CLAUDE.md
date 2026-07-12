@@ -14,14 +14,20 @@ with `vue-tsc`. No backend — it's a purely client-side app.
 ## Commands
 
 ```sh
-npm run dev          # dev server with hot reload
-npm run type-check   # vue-tsc --build (primary verification — see below)
-npm run build        # type-check + production build to dist/
-npm run preview      # serve the production build
+yarn install         # install workspace dependencies
+yarn dev:board       # board app with hot reload
+yarn dev:console     # console app with hot reload
+yarn dev:server      # server app with hot reload
+yarn type-check      # repo-wide type-check (primary verification — see below)
+yarn build           # type-check + frontend production builds
+yarn preview:board   # serve the board production build
+yarn preview:console # serve the console production build
+yarn start:server    # run the server without the watcher
 ```
 
-There is **no test runner** in this project. `npm run type-check` is the main automated
-gate; verify UI/behavior by running `npm run dev` and exercising the flow in a browser.
+There is **no test runner** in this project. `yarn type-check` is the main automated
+gate; verify UI/behavior by running the relevant `yarn dev:*` command and exercising the flow in
+a browser.
 
 ## Architecture
 
@@ -34,7 +40,7 @@ Game logic is deliberately kept out of the components, in framework-light module
   `continuePlaying`, and the `checkoutRoutes` computed. Constants: `THROWS_PER_TURN = 3`,
   `START_SCORES = [301, 501]`, `DEFAULT_OPTIONS`. `type OutMode = 'single' | 'double'`.
 - **`src/game/checkout.ts`** — pure checkout solver. `suggestCheckouts(score, dartsLeft,
-  outMode)` returns up to 3 `CheckoutRoute`s; `dartLabel()` formats a dart (`T20`, `D16`,
+outMode)` returns up to 3 `CheckoutRoute`s; `dartLabel()` formats a dart (`T20`, `D16`,
   `Bull`). No Vue dependency.
 - **`src/game/setupStorage.ts`** — `loadSetup()` / `saveSetup()` persist the roster
   (names + selected) and options to `localStorage` under key `pi-darts.setup.v1`. Defensive
@@ -73,5 +79,5 @@ UI components under `src/components/`:
 
 - **Do not add dependencies** without explicit approval; nothing outside `package.json`.
 - Pin **exact** versions (`1.2.3`) — no ranges/carets/tildes/tags/wildcards.
-- Never hand-edit `package-lock.json`; never run `npm update`/`upgrade` or `npx` without
-  explicit confirmation.
+- Never hand-edit `yarn.lock`; never run `yarn up`/`yarn up -R` or `npx` without explicit
+  confirmation.

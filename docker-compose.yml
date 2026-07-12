@@ -1,0 +1,18 @@
+# One service = the whole backend. SQLite lives on a named volume, so tournament
+# data survives restarts. Boards run on the Pis and point at this host's LAN IP.
+services:
+  server:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATA_DIR: /data
+      CONSOLE_DIR: /app/apps/console/dist
+    volumes:
+      - pi-darts-data:/data
+    restart: unless-stopped
+
+volumes:
+  pi-darts-data:
