@@ -34,7 +34,10 @@ function loadRenderer(webContents: Electron.WebContents, query?: Record<string, 
     if (query) for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v)
     void webContents.loadURL(url.toString())
   } else {
-    void webContents.loadFile(join(__dirname, '../renderer/index.html'), query ? { query } : undefined)
+    void webContents.loadFile(
+      join(__dirname, '../renderer/index.html'),
+      query ? { query } : undefined
+    )
   }
 }
 
@@ -88,8 +91,12 @@ function layoutViews(): void {
   })
 }
 
-/** Show an installed app full-screen with the floating Home button layered on top. */
-function launchApp(id: string): void {
+/**
+ * Show an installed app full-screen with the floating Home button layered on top. An optional
+ * query (e.g. `mode=tournament`) is appended to the launch URL so one bundle can back several
+ * home tiles; the protocol resolves files by pathname, so the query only reaches the app.
+ */
+function launchApp(id: string, query?: string): void {
   if (!mainWindow) return
   if (!store.getActiveDir(id)) throw new Error(`App "${id}" is not installed`)
   if (!appView) {
@@ -112,7 +119,7 @@ function launchApp(id: string): void {
   // Added after the app view → composited on top.
   if (!cv.children.includes(homeButton)) cv.addChildView(homeButton)
   layoutViews()
-  void appView.webContents.loadURL(`${PIAPP_SCHEME}://${id}/index.html`)
+  void appView.webContents.loadURL(`${PIAPP_SCHEME}://${id}/index.html${query ? `?${query}` : ''}`)
   mainWindow.webContents.send('launcher:activeApp', id)
 }
 
@@ -129,10 +136,12 @@ function registerIpc(): void {
   ipcMain.handle('launcher:listInstalled', () => store.listInstalled())
   ipcMain.handle('launcher:checkForUpdates', () => store.checkForUpdates())
   ipcMain.handle('launcher:installOrUpdate', (_e, id: string) => store.installOrUpdate(id))
-  ipcMain.handle('launcher:launchApp', (_e, id: string) => launchApp(id))
+  ipcMain.handle('launcher:launchApp', (_e, id: string, query?: string) => launchApp(id, query))
   ipcMain.handle('launcher:goHome', () => goHome())
   ipcMain.handle('launcher:getSettings', () => loadSettings())
-  ipcMain.handle('launcher:setSettings', (_e, patch: Partial<LauncherSettings>) => saveSettings(patch))
+  ipcMain.handle('launcher:setSettings', (_e, patch: Partial<LauncherSettings>) =>
+    saveSettings(patch)
+  )
 
   store.on('progress', (p: UpdateProgress) => mainWindow?.webContents.send('launcher:progress', p))
 }

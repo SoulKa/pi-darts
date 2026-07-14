@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { CatalogEntry, InstalledApp, UpdateProgress } from '../../shared/types'
 import StorePanel from './components/StorePanel.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
@@ -25,6 +25,33 @@ function nameOf(id: string): string {
   return catalog.value.find((c) => c.id === id)?.name ?? id
 }
 
+/** A home-grid tile: an installed bundle opened directly, or a shortcut (same bundle + query). */
+interface Tile {
+  key: string
+  bundleId: string
+  name: string
+  version: string
+  query?: string
+}
+
+// One tile per installed bundle, plus an extra tile per declared shortcut. Shortcuts come from the
+// persisted install metadata (offline) or the fetched catalog when the bundle predates them.
+const tiles = computed<Tile[]>(() =>
+  installed.value.flatMap((app) => {
+    const shortcuts = app.shortcuts ?? catalog.value.find((c) => c.id === app.id)?.shortcuts ?? []
+    return [
+      { key: app.id, bundleId: app.id, name: app.name ?? nameOf(app.id), version: app.version },
+      ...shortcuts.map((sc) => ({
+        key: sc.id,
+        bundleId: app.id,
+        name: sc.name,
+        version: app.version,
+        query: sc.query
+      }))
+    ]
+  })
+)
+
 function toast(text: string): void {
   const id = ++toastSeq
   toasts.value.push({ id, text })
@@ -38,8 +65,8 @@ async function refresh(): Promise<void> {
   catalog.value = await window.launcher.checkForUpdates()
 }
 
-async function launch(id: string): Promise<void> {
-  await window.launcher.launchApp(id)
+async function launch(id: string, query?: string): Promise<void> {
+  await window.launcher.launchApp(id, query)
 }
 
 async function goHome(): Promise<void> {
@@ -63,13 +90,13 @@ onMounted(async () => {
     window.launcher.onProgress((p) => {
       progress.value = { ...progress.value, [p.id]: p }
       if (p.phase === 'done' || p.phase === 'error') void refresh()
-    }),
+    })
   )
   disposers.push(
     window.launcher.onAutoUpdated((ids) => {
       toast(`Updated ${ids.map(nameOf).join(', ')}`)
       void refresh()
-    }),
+    })
   )
   await refresh()
 })
@@ -93,11 +120,16 @@ onUnmounted(() => disposers.forEach((d) => d()))
     </header>
 
     <main class="grid">
-      <button v-for="app in installed" :key="app.id" class="tile" @click="launch(app.id)">
-        <span class="tile-name">{{ nameOf(app.id) }}</span>
-        <span class="tile-version">v{{ app.version }}</span>
+      <button
+        v-for="tile in tiles"
+        :key="tile.key"
+        class="tile"
+        @click="launch(tile.bundleId, tile.query)"
+      >
+        <span class="tile-name">{{ tile.name }}</span>
+        <span class="tile-version">v{{ tile.version }}</span>
       </button>
-      <p v-if="!installed.length" class="empty">No apps installed yet — open the Store.</p>
+      <p v-if="!tiles.length" class="empty">No apps installed yet — open the Store.</p>
     </main>
 
     <StorePanel

@@ -6,7 +6,10 @@
   "piDarts": {
     "displayName": "Darts Board",
     "description": "Touch-first darts scoreboard",
-    "icon": "favicon.ico"
+    "icon": "favicon.ico",
+    "shortcuts": [
+      { "id": "board-tournament", "name": "Tournament Board", "query": "mode=tournament", "icon": "favicon.ico" }
+    ]
   },
   "scripts": {
     "dev": "vite",

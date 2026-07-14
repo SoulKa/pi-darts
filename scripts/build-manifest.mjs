@@ -63,6 +63,7 @@ for (const entry of readdirSync(appsDir, { withFileTypes: true }).sort((a, b) =>
     sha256: createHash('sha256').update(buf).digest('hex'),
     size: buf.length,
     ...(meta.icon ? { icon: meta.icon } : {}),
+    ...(meta.shortcuts ? { shortcuts: meta.shortcuts } : {}),
   })
 }
 
