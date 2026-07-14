@@ -1,79 +1,122 @@
 # CLAUDE.md
 
-Guidance for Claude Code (and other AI assistants) working in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this is
 
-**pi-darts** is a touch-first darts scoreboard that runs full-screen on a Raspberry Pi
-touchscreen. It is scored entirely by tapping — there is no hardware keyboard, so all text
-input (player names) goes through an on-screen keyboard component.
+**pi-darts** is a Yarn 4.17.1 workspace (Node `^22.18.0 || >=24.12.0`) for a touch-first darts
+setup that runs on a Raspberry Pi:
 
-Stack: **Vue 3** (`<script setup>`, composition API) + **Vite** + **TypeScript**, type-checked
-with `vue-tsc`. No backend — it's a purely client-side app.
+- **`apps/board`** — the full-screen touchscreen scorer (Vue 3, `<script setup>`, Vite). Scored
+  entirely by tapping; player names go through an on-screen keyboard. Plays offline standalone,
+  or joins a tournament.
+- **`standalone/console`** — Vue Router tournament management/overview app (Vite).
+- **`standalone/server`** — Fastify + Socket.IO tournament server on a single port; SQLite via
+  Drizzle.
+- **`standalone/launcher`** — Electron shell that runs on the Pi: a home screen of installed-app
+  tiles, an app store, and a settings screen; installs/updates app bundles and launches each as a
+  `WebContentsView`.
+- **`packages/shared`** (`@pi-darts/shared`) — the contract boundary: domain models, Zod request
+  schemas, and typed Socket.IO event maps consumed by all of the above.
 
 ## Commands
 
+Run everything from the repo root. Yarn 4 does **not** allow running scripts from inside a
+workspace directory — always use `yarn workspace <name> <script>` for workspace-scoped commands.
+
 ```sh
-yarn install         # install workspace dependencies
-yarn dev:board       # board app with hot reload
-yarn dev:console     # console app with hot reload
-yarn dev:server      # server app with hot reload
-yarn type-check      # repo-wide type-check (primary verification — see below)
-yarn build           # type-check + frontend production builds
-yarn preview:board   # serve the board production build
-yarn preview:console # serve the console production build
-yarn start:server    # run the server without the watcher
+yarn install
+yarn dev:board        # board Vite app (hot reload)
+yarn dev:console      # tournament-console Vite app
+yarn dev:server       # Fastify + Socket.IO server
+yarn dev:launcher     # Electron launcher
+yarn type-check       # all workspaces; primary automated gate
+yarn build            # type-check, then build board + console
+yarn build:launcher   # build the Electron launcher (electron-vite + electron-builder)
+yarn prepare-seed     # build the board and regenerate the launcher's seed manifest
+yarn test             # run the vitest suites once (server + console)
+yarn test:watch       # vitest in watch mode
+yarn format           # prettier --write
+yarn format:check     # prettier --check
+yarn preview:board / yarn preview:console
+yarn start:server     # run the server without the watcher
+yarn workspace @pi-darts/server db:generate  # after changing the Drizzle schema
+yarn workspace @pi-darts/server db:check     # validate migration metadata
 ```
 
-There is **no test runner** in this project. `yarn type-check` is the main automated
-gate; verify UI/behavior by running the relevant `yarn dev:*` command and exercising the flow in
-a browser.
+Testing / verification:
+
+- `yarn test` runs vitest from the root (it **cannot** be run from within a workspace under Yarn
+  4). Run a single file with `yarn test <path/to/file.test.ts>`, or a single case with
+  `yarn test -t "<test name>"`.
+- For a focused type check use the owning workspace, e.g. `yarn workspace @pi-darts/server
+type-check`. The **launcher's** script is `typecheck` (no hyphen) and it also has an eslint
+  `lint` script; the other workspaces have no lint script.
+- There is no board test suite — verify board UI/behavior by running `yarn dev:board` and
+  exercising the flow in a browser.
 
 ## Architecture
 
-Game logic is deliberately kept out of the components, in framework-light modules under
-`src/game/`:
+**`packages/shared` is the source of truth.** Domain models, Zod request schemas, and Socket.IO
+event maps are exported from its root. Change these contracts _first_, then adapt the server and
+clients together — the server, console, and tournament-mode board all depend on them staying
+aligned.
 
-- **`src/game/useDartGame.ts`** — the core composable. Holds `phase` (`'setup' | 'playing'`),
-  `players`, per-game `options` (`startScore`, `outMode`), the current turn's throws, finish
-  order, and undo history. Exposes `throwDart`, `undo`, `startGame`, `backToSetup`,
-  `continuePlaying`, and the `checkoutRoutes` computed. Constants: `THROWS_PER_TURN = 3`,
-  `START_SCORES = [301, 501]`, `DEFAULT_OPTIONS`. `type OutMode = 'single' | 'double'`.
-- **`src/game/checkout.ts`** — pure checkout solver. `suggestCheckouts(score, dartsLeft,
-outMode)` returns up to 3 `CheckoutRoute`s; `dartLabel()` formats a dart (`T20`, `D16`,
-  `Bull`). No Vue dependency.
-- **`src/game/setupStorage.ts`** — `loadSetup()` / `saveSetup()` persist the roster
-  (names + selected) and options to `localStorage` under key `pi-darts.setup.v1`. Defensive
-  parsing; never throws.
+**Board (`apps/board`).** Game logic is deliberately kept out of components, in framework-light
+modules under `apps/board/src/game/`:
 
-UI components under `src/components/`:
+- **`useDartGame.ts`** — core composable: `phase` (`'setup' | 'playing'`), `players`, per-game
+  `options` (`startScore`, `outMode`), the current turn's throws, finish order, and undo history.
+  Exposes `throwDart`, `undo`, `startGame`, `backToSetup`, `continuePlaying`, and `checkoutRoutes`.
+  Constants: `THROWS_PER_TURN = 3`, `START_SCORES = [301, 501]`, `DEFAULT_OPTIONS`.
+- **`checkout.ts`** — pure checkout solver: `suggestCheckouts(score, dartsLeft, outMode)` returns
+  up to 3 routes; `dartLabel()` formats a dart (`T20`, `D16`, `Bull`). No Vue dependency.
+- **`setupStorage.ts`** — `loadSetup()`/`saveSetup()` persist the roster + options to
+  `localStorage`; defensive parsing, never throws.
+- **`tournamentClient.ts`** — layers tournament mode on top of the local engine. The board stays
+  authoritative for scoring a live leg, streams throws, and reports completed legs to the server.
+  **Offline play must remain independent of the tournament connection.**
 
-- **`App.vue`** — root; switches between setup and game screens, renders the player board +
-  number pad, and the finish / game-over / new-game-confirm overlays.
-- **`SetupScreen.vue`** — roster editing, game options (gear ⚙️ overlay), and bull-out play
-  order. Seeds from `setupStorage` and persists changes via a watcher.
-- **`NumberPad.vue`** — the scoring pad. Its hint line doubles as the checkout display.
-- **`PlayerBoard.vue`** — per-player cards (score, progress, this turn's darts).
-- **`VirtualKeyboard.vue`** — on-screen keyboard for entering names.
+**Server (`standalone/server`).** Fastify REST API and Socket.IO share one port. Routes validate
+bodies with `@pi-darts/shared` schemas; services mutate SQLite through Drizzle; `realtime/`
+broadcasts snapshots, match changes, and the in-memory live-score mirror (display-only; resets
+after each reported leg). Keep REST mutations broadcasting through `realtime/hub.ts` so console
+overview state stays synchronized. Tournament scheduling math is pure under `src/engine`;
+orchestration in `services/tournaments.ts` persists round-robin groups / knockout brackets, and
+match lifecycle + bracket advancement live in `services/matches.ts`. SQLite lives at
+`${DATA_DIR:-./data}/pi-darts.db`; Drizzle applies committed migrations at startup — define table
+and index changes only in `src/db/schema.ts`, then generate a migration. The server can serve a
+built console SPA when `CONSOLE_DIR` is set.
 
-`src/main.ts` mounts `App.vue` on `#app`.
+**Console (`standalone/console`).** Its typed REST client calls `/api`; its Socket.IO client
+receives tournament snapshots and live-match updates. In dev, Vite proxies `/api` and `/socket.io`
+to `SERVER_URL` (default `http://localhost:3000`).
+
+**Launcher (`standalone/launcher`).** `src/renderer` is the Vue home screen (app tiles, store,
+full-screen settings); `src/main` is the Electron main process that installs/updates app bundles
+and launches each as a `WebContentsView` served over the custom `piapp://` scheme. Launcher
+settings are only reachable via the `window.launcher` preload bridge, so launcher UI stays in the
+renderer rather than shipping as a `piapp://` bundle. `yarn prepare-seed` refreshes the seed
+manifest bundled under `resources/seed`.
 
 ## Domain rules
 
 - A turn is up to 3 darts. Going below 0 is a **bust** (whole turn reverts).
 - **Single-out:** finish on exactly 0 with any dart.
-- **Double-out:** the finishing dart must be a double (incl. bull 50 = double-25); reaching 0
-  on a non-double busts, and leaving a score of 1 busts.
+- **Double-out:** the finishing dart must be a double (incl. bull 50 = double-25); reaching 0 on a
+  non-double busts, and leaving a score of 1 busts.
 - A dart is a "double" when `multiplier === 2`. Triple-25 is illegal.
+- The shared domain mirrors this board scoring vocabulary — reuse `@pi-darts/shared` types/schemas
+  rather than duplicating payloads or event signatures in an app.
 
 ## Conventions
 
 - Match the surrounding style: `<script setup lang="ts">`, composition API, small focused
-  components, dark slate/cyan theme.
-- Comments explain **why**, not what; keep the existing density.
-- This runs on a **touchscreen** — interactive controls should keep a comfortable finger
-  target (~44–48px minimum). Don't shrink tap targets.
-- Keep game logic in `src/game/` pure and UI-agnostic where practical.
+  components, dark slate/cyan theme. Comments explain **why**, not what; keep the existing density.
+- Board interactions are touchscreen-first: keep comfortable ~44–48px minimum tap targets and use
+  the on-screen keyboard for names. Don't shrink tap targets.
+- Keep board scoring logic pure and UI-agnostic in `apps/board/src/game`; components stay focused
+  on presentation and interaction.
 
 ## Constraints (dependencies & tooling)
 

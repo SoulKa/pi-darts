@@ -5,15 +5,21 @@ Custom instructions for GitHub Copilot when working in this repository.
 ## Project and commands
 
 **pi-darts** is a Yarn 4.17.1 workspace for a touch-first Raspberry Pi darts board, a
-tournament console, and a LAN-hosted tournament server. Use Node.js `^22.18.0 || >=24.12.0`.
+tournament console, a LAN-hosted tournament server, and an Electron launcher that packages the
+apps onto the Pi. Use Node.js `^22.18.0 || >=24.12.0`.
 
 ```sh
 yarn install
 yarn dev:board        # board Vite app
 yarn dev:console      # tournament-console Vite app
 yarn dev:server       # Fastify + Socket.IO server
+yarn dev:launcher     # Electron launcher (home screen + app store shell)
 yarn type-check       # all workspaces; primary automated check
 yarn build            # type-check, then build the board and console
+yarn build:launcher   # build the Electron launcher (electron-vite + electron-builder)
+yarn prepare-seed     # build the board and regenerate the launcher seed manifest
+yarn test             # run the vitest suites once (server + console)
+yarn test:watch       # vitest in watch mode
 yarn format           # format supported source and config files
 yarn format:check     # verify formatting without changes
 yarn preview:board
@@ -23,10 +29,12 @@ yarn workspace @pi-darts/server db:generate  # after changing the Drizzle schema
 yarn workspace @pi-darts/server db:check     # validate migration metadata
 ```
 
-There is no test runner or lint script. For a focused automated check, run the owning
-workspace's type check, for example `yarn workspace @pi-darts/board type-check`,
-`yarn workspace @pi-darts/console type-check`, `yarn workspace @pi-darts/server type-check`,
-or `yarn workspace @pi-darts/shared type-check`.
+Automated tests run under vitest (`yarn test` from the repo root — cannot be run from inside a
+workspace under Yarn 4). For a focused check, run the owning workspace's type check, for
+example `yarn workspace @pi-darts/board type-check`, `yarn workspace @pi-darts/console
+type-check`, `yarn workspace @pi-darts/server type-check`, or `yarn workspace @pi-darts/shared
+type-check`. The launcher's script is named `typecheck` (no hyphen):
+`yarn workspace @pi-darts/launcher typecheck`, and it also has an eslint `lint` script.
 
 ## Architecture
 
@@ -51,6 +59,13 @@ or `yarn workspace @pi-darts/shared type-check`.
 - Tournament scheduling math is pure under `standalone/server/src/engine`; orchestration in
   `services/tournaments.ts` persists generated round-robin groups or knockout brackets. Match
   lifecycle and bracket advancement belong in `services/matches.ts`.
+- `standalone/launcher` is the Electron shell that runs on the Pi: a home screen (`src/renderer`)
+  showing installed-app tiles, an app store, and a full-screen settings screen, plus a main
+  process (`src/main`) that installs/updates app bundles and launches each one as a
+  `WebContentsView` served over the custom `piapp://` scheme. Its launcher settings are only
+  reachable through the `window.launcher` preload bridge, so launcher UI stays in the renderer
+  rather than shipping as a `piapp://` bundle. `yarn prepare-seed` builds the board and refreshes
+  the seed manifest bundled under `resources/seed`.
 
 ## Domain rules
 
