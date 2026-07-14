@@ -61,7 +61,7 @@ jobs:
       # Invoke electron-builder directly (rather than the build:linux script) so we can inject the
       # tag version via extraMetadata. Output lands in standalone/launcher/dist/.
       - name: Package launcher (arm64 AppImage + deb)
-        run: yarn workspace @pipod/launcher exec electron-builder --linux --arm64 --config.extraMetadata.version=${{ steps.version.outputs.version }}
+        run: yarn workspace @pipod/launcher exec electron-builder --linux --arm64 --publish never --config.extraMetadata.version=${{ steps.version.outputs.version }}
 
       - name: Publish GitHub Release
         env:
