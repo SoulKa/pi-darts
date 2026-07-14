@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import type { LauncherSettings } from '../../../shared/types'
-import ModalOverlay from './ModalOverlay.vue'
 
-defineEmits<{ close: [] }>()
+defineEmits<{ home: [] }>()
 
 const settings = ref<LauncherSettings>({ autoUpdateOnLaunch: true })
 const saved = ref(false)
@@ -22,7 +21,12 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <ModalOverlay title="Settings" @close="$emit('close')">
+  <div class="screen">
+    <header class="head">
+      <button class="back" @click="$emit('home')">‹ Home</button>
+      <h2>Settings</h2>
+    </header>
+
     <div class="body">
       <label class="toggle">
         <input v-model="settings.autoUpdateOnLaunch" type="checkbox" />
@@ -34,10 +38,30 @@ async function save(): Promise<void> {
         <span v-if="saved" class="saved">Saved ✓</span>
       </div>
     </div>
-  </ModalOverlay>
+  </div>
 </template>
 
 <style scoped>
+.screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
 .body {
   padding: 20px;
   display: flex;

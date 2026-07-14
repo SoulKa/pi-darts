@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { CatalogEntry, InstalledApp, UpdateProgress } from '../../shared/types'
 import StorePanel from './components/StorePanel.vue'
-import SettingsPanel from './components/SettingsPanel.vue'
+import SettingsScreen from './components/SettingsScreen.vue'
 
 // This same renderer is loaded twice: as the launcher home, and (role=overlay) as the tiny
 // always-on-top Home button floating over a running app.
@@ -14,7 +14,9 @@ if (isOverlay) {
 
 const installed = ref<InstalledApp[]>([])
 const catalog = ref<CatalogEntry[]>([])
-const overlay = ref<'none' | 'store' | 'settings'>('none')
+// Settings is its own full-screen "app" screen (like launching an app); Store stays a modal.
+const view = ref<'home' | 'settings'>('home')
+const overlay = ref<'none' | 'store'>('none')
 const progress = ref<Record<string, UpdateProgress>>({})
 const toasts = ref<{ id: number; text: string }[]>([])
 
@@ -81,6 +83,9 @@ onUnmounted(() => disposers.forEach((d) => d()))
   <!-- Overlay role: a small Home notch tab hanging from the top edge, filling its overlay view. -->
   <button v-if="isOverlay" class="home-notch" title="Home" @click="goHome">⌂</button>
 
+  <!-- Full-screen Settings "app" — covers the home, like a launched app. -->
+  <SettingsScreen v-else-if="view === 'settings'" @home="view = 'home'" />
+
   <!-- Launcher home screen -->
   <div v-else class="home">
     <header class="home-header">
@@ -88,7 +93,6 @@ onUnmounted(() => disposers.forEach((d) => d()))
       <div class="tools">
         <button @click="refresh">Refresh</button>
         <button @click="overlay = 'store'">Store</button>
-        <button @click="overlay = 'settings'">Settings</button>
       </div>
     </header>
 
@@ -102,6 +106,13 @@ onUnmounted(() => disposers.forEach((d) => d()))
         <img class="tile-icon" :src="`piapp://${app.id}/${app.icon}`" alt="" />
         <span class="tile-name">{{ app.name ?? nameOf(app.id) }}</span>
       </button>
+
+      <!-- Built-in Settings tile: no piapp icon, so a gear glyph stands in. Always last. -->
+      <button class="tile" @click="view = 'settings'">
+        <span class="tile-icon tile-icon--glyph">⚙️</span>
+        <span class="tile-name">Settings</span>
+      </button>
+
       <p v-if="!installed.length" class="empty">No apps installed yet — open the Store.</p>
     </main>
 
@@ -113,7 +124,6 @@ onUnmounted(() => disposers.forEach((d) => d()))
       @refresh="refresh"
       @close="overlay = 'none'"
     />
-    <SettingsPanel v-if="overlay === 'settings'" @close="overlay = 'none'" />
 
     <div class="toasts">
       <div v-for="t in toasts" :key="t.id" class="toast">{{ t.text }}</div>
@@ -191,6 +201,16 @@ onUnmounted(() => disposers.forEach((d) => d()))
   height: 104px;
   border-radius: 24px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* Built-in tiles have no image asset: render a glyph on the same rounded-square canvas. */
+.tile-icon--glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  line-height: 1;
+  background: var(--panel-2);
 }
 
 .tile-name {
