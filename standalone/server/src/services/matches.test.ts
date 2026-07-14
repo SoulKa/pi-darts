@@ -9,13 +9,7 @@ import {
   createTournament,
   generateStage,
 } from './tournaments'
-import {
-  assignMatchFloor,
-  claimMatch,
-  dispatchMatch,
-  legsToWin,
-  reportLeg,
-} from './matches'
+import { assignMatchFloor, claimMatch, dispatchMatch, legsToWin, reportLeg } from './matches'
 
 describe('legsToWin', () => {
   it.each([

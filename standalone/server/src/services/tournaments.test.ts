@@ -39,9 +39,12 @@ describe('createTournament / addParticipant', () => {
   it('persists a tournament in setup and lists its participants', () => {
     const { tournament, players } = withPlayers(2)
     expect(repo.getTournament(tournament.id)).toMatchObject({ name: 'T', status: 'setup' })
-    expect(repo.listParticipants(tournament.id).map((p) => p.id).sort()).toEqual(
-      players.map((p) => p.id).sort(),
-    )
+    expect(
+      repo
+        .listParticipants(tournament.id)
+        .map((p) => p.id)
+        .sort(),
+    ).toEqual(players.map((p) => p.id).sort())
   })
 })
 
@@ -99,7 +102,10 @@ describe('generateStage — knockout', () => {
     expect(matches).toHaveLength(3) // 2 first-round + final
     const round0 = matches.filter((m) => m.round === 0)
     // Top seed (1) meets lowest seed (4) in the first match.
-    expect(round0[0]).toMatchObject({ participantAId: players[0]!.id, participantBId: players[3]!.id })
+    expect(round0[0]).toMatchObject({
+      participantAId: players[0]!.id,
+      participantBId: players[3]!.id,
+    })
     expect(round0.every((m) => m.status === 'ready')).toBe(true)
   })
 })

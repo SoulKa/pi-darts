@@ -14,9 +14,8 @@ if (isOverlay) {
 
 const installed = ref<InstalledApp[]>([])
 const catalog = ref<CatalogEntry[]>([])
-// Settings is its own full-screen "app" screen (like launching an app); Store stays a modal.
-const view = ref<'home' | 'settings'>('home')
-const overlay = ref<'none' | 'store'>('none')
+// Settings and Store are each their own full-screen "app" screen (like launching an app).
+const view = ref<'home' | 'settings' | 'store'>('home')
 const progress = ref<Record<string, UpdateProgress>>({})
 const toasts = ref<{ id: number; text: string }[]>([])
 
@@ -86,14 +85,20 @@ onUnmounted(() => disposers.forEach((d) => d()))
   <!-- Full-screen Settings "app" — covers the home, like a launched app. -->
   <SettingsScreen v-else-if="view === 'settings'" @home="view = 'home'" />
 
+  <!-- Full-screen Store "app" — covers the home, like a launched app. -->
+  <StorePanel
+    v-else-if="view === 'store'"
+    :catalog="catalog"
+    :progress="progress"
+    @install="install"
+    @refresh="refresh"
+    @home="view = 'home'"
+  />
+
   <!-- Launcher home screen -->
   <div v-else class="home">
     <header class="home-header">
       <div class="brand">🎯 pi-darts</div>
-      <div class="tools">
-        <button @click="refresh">Refresh</button>
-        <button @click="overlay = 'store'">Store</button>
-      </div>
     </header>
 
     <main class="grid">
@@ -107,7 +112,12 @@ onUnmounted(() => disposers.forEach((d) => d()))
         <span class="tile-name">{{ app.name ?? nameOf(app.id) }}</span>
       </button>
 
-      <!-- Built-in Settings tile: no piapp icon, so a gear glyph stands in. Always last. -->
+      <!-- Built-in Store/Settings tiles: no piapp icon, so a glyph stands in. Settings always last. -->
+      <button class="tile" @click="view = 'store'">
+        <span class="tile-icon tile-icon--glyph">🛍️</span>
+        <span class="tile-name">Store</span>
+      </button>
+
       <button class="tile" @click="view = 'settings'">
         <span class="tile-icon tile-icon--glyph">⚙️</span>
         <span class="tile-name">Settings</span>
@@ -115,15 +125,6 @@ onUnmounted(() => disposers.forEach((d) => d()))
 
       <p v-if="!installed.length" class="empty">No apps installed yet — open the Store.</p>
     </main>
-
-    <StorePanel
-      v-if="overlay === 'store'"
-      :catalog="catalog"
-      :progress="progress"
-      @install="install"
-      @refresh="refresh"
-      @close="overlay = 'none'"
-    />
 
     <div class="toasts">
       <div v-for="t in toasts" :key="t.id" class="toast">{{ t.text }}</div>
@@ -166,11 +167,6 @@ onUnmounted(() => disposers.forEach((d) => d()))
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.5px;
-}
-
-.tools {
-  display: flex;
-  gap: 10px;
 }
 
 .grid {

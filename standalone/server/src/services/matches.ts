@@ -61,9 +61,7 @@ export function assignMatchFloor(
   }
 
   // Splice this match into the target floor's ready queue at the requested position.
-  const queue = repo
-    .listFloorQueue(floorId)
-    .filter((m) => m.status === 'ready' && m.id !== matchId)
+  const queue = repo.listFloorQueue(floorId).filter((m) => m.status === 'ready' && m.id !== matchId)
   const index = Math.max(0, Math.min(position ?? queue.length, queue.length))
   const ordered = [...queue.slice(0, index), match, ...queue.slice(index)]
 
@@ -78,7 +76,10 @@ export function reorderFloorQueue(floorId: string, matchIds: string[]): void {
   const floor = repo.getFloor(floorId)
   if (!floor) throw new Error('floor not found')
   const onFloor = new Set(
-    repo.listFloorQueue(floorId).filter((m) => m.status === 'ready').map((m) => m.id),
+    repo
+      .listFloorQueue(floorId)
+      .filter((m) => m.status === 'ready')
+      .map((m) => m.id),
   )
   const ordered = matchIds.filter((id) => onFloor.has(id))
   writeQueueOrder(ordered)

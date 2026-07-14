@@ -32,9 +32,7 @@ export function runAutoAssign(tournamentId: string): void {
   // listMatches is ordered by round/slot, so earlier rounds are scheduled first.
   const candidates = all.filter((m) => m.status === 'ready' && m.floorId === null)
   for (const match of candidates) {
-    const players = [match.participantAId, match.participantBId].filter(
-      (id): id is string => !!id,
-    )
+    const players = [match.participantAId, match.participantBId].filter((id): id is string => !!id)
     if (players.some((id) => busy.has(id))) continue
     const target = floors.reduce((best, f) =>
       (queueLen.get(f.id) ?? 0) < (queueLen.get(best.id) ?? 0) ? f : best,

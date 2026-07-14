@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CatalogEntry, UpdateProgress } from '../../../shared/types'
-import ModalOverlay from './ModalOverlay.vue'
 
 const props = defineProps<{
   catalog: CatalogEntry[]
   progress: Record<string, UpdateProgress>
 }>()
-defineEmits<{ install: [id: string]; refresh: []; close: [] }>()
+defineEmits<{ install: [id: string]; refresh: []; home: [] }>()
 
 function busy(id: string): boolean {
   const p = props.progress[id]
@@ -38,10 +37,12 @@ const sorted = computed(() => [...props.catalog].sort((a, b) => a.name.localeCom
 </script>
 
 <template>
-  <ModalOverlay title="App Store" :width="680" @close="$emit('close')">
-    <template #head-tools>
-      <button @click="$emit('refresh')">Check for updates</button>
-    </template>
+  <div class="screen">
+    <header class="head">
+      <button class="back" @click="$emit('home')">‹ Home</button>
+      <h2>App Store</h2>
+      <button class="check" @click="$emit('refresh')">Check for updates</button>
+    </header>
 
     <ul class="list">
       <li v-for="entry in sorted" :key="entry.id" class="row">
@@ -50,24 +51,48 @@ const sorted = computed(() => [...props.catalog].sort((a, b) => a.name.localeCom
           <div class="desc">{{ entry.description }}</div>
           <div class="status">{{ status(entry) }}</div>
         </div>
-        <button
-          class="primary"
-          :disabled="!canAct(entry)"
-          @click="$emit('install', entry.id)"
-        >
+        <button class="primary" :disabled="!canAct(entry)" @click="$emit('install', entry.id)">
           {{ actionLabel(entry) }}
         </button>
       </li>
       <li v-if="!sorted.length" class="empty">No apps found in the latest release.</li>
     </ul>
-  </ModalOverlay>
+  </div>
 </template>
 
 <style scoped>
+.screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+/* Push the update check to the far end, opposite the back button. */
+.check {
+  margin-left: auto;
+}
+
 .list {
   list-style: none;
   margin: 0;
   padding: 8px;
+  /* Fill the remaining height so the list scrolls, not the whole screen. */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 

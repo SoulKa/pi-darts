@@ -32,7 +32,9 @@ rmSync(outDir, { recursive: true, force: true })
 mkdirSync(outDir, { recursive: true })
 
 const apps = []
-for (const entry of readdirSync(appsDir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+for (const entry of readdirSync(appsDir, { withFileTypes: true }).sort((a, b) =>
+  a.name.localeCompare(b.name),
+)) {
   if (!entry.isDirectory()) continue
   const appDir = join(appsDir, entry.name)
   const pkgPath = join(appDir, 'package.json')
@@ -41,7 +43,9 @@ for (const entry of readdirSync(appsDir, { withFileTypes: true }).sort((a, b) =>
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
   const distDir = join(appDir, 'dist')
   if (!existsSync(distDir)) {
-    throw new Error(`No build output at ${distDir} — build ${pkg.name} before generating the manifest.`)
+    throw new Error(
+      `No build output at ${distDir} — build ${pkg.name} before generating the manifest.`,
+    )
   }
   const version = pkg.version
 

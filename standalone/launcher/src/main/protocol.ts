@@ -13,8 +13,14 @@ export function registerPiappScheme(): void {
   protocol.registerSchemesAsPrivileged([
     {
       scheme: PIAPP_SCHEME,
-      privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true },
-    },
+      privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+        corsEnabled: true,
+        stream: true
+      }
+    }
   ])
 }
 

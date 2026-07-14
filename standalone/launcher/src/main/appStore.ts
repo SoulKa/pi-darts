@@ -6,7 +6,13 @@ import { join } from 'path'
 import { promisify } from 'util'
 import { appDir, appMetaPath, appsRoot, seedDir } from './paths'
 import { downloadAsset, fetchLatestManifest } from './github'
-import type { CatalogEntry, InstalledApp, Manifest, ManifestApp, UpdateProgress } from '../shared/types'
+import type {
+  CatalogEntry,
+  InstalledApp,
+  Manifest,
+  ManifestApp,
+  UpdateProgress
+} from '../shared/types'
 
 const execFileAsync = promisify(execFile)
 
@@ -68,7 +74,7 @@ export class AppStore extends EventEmitter {
         installedVersion: inst?.version ?? null,
         availableVersion: remote?.version ?? null,
         updateAvailable:
-          !!remote && !!inst && (remote.version !== inst.version || remote.sha256 !== inst.sha256),
+          !!remote && !!inst && (remote.version !== inst.version || remote.sha256 !== inst.sha256)
       }
     })
   }
@@ -85,7 +91,7 @@ export class AppStore extends EventEmitter {
 
       emit({ id, phase: 'download', received: 0, total: app.size })
       const buf = await downloadAsset(url, (received, total) =>
-        emit({ id, phase: 'download', received, total: total || app.size }),
+        emit({ id, phase: 'download', received, total: total || app.size })
       )
       await this.installBuffer(app, buf, emit)
     } catch (err) {
@@ -160,7 +166,7 @@ export class AppStore extends EventEmitter {
   private async installBuffer(
     app: ManifestApp,
     buf: Buffer,
-    emit: (p: UpdateProgress) => void,
+    emit: (p: UpdateProgress) => void
   ): Promise<void> {
     emit({ id: app.id, phase: 'verify' })
     const sha256 = createHash('sha256').update(buf).digest('hex')
@@ -195,7 +201,7 @@ export class AppStore extends EventEmitter {
       name: app.name,
       icon: app.icon,
       // Persist so the home grid can label, icon + launch the app without a remote manifest.
-      ...(app.query ? { query: app.query } : {}),
+      ...(app.query ? { query: app.query } : {})
     }
     await fs.writeFile(appMetaPath(app.id), `${JSON.stringify(meta, null, 2)}\n`)
     this.installed.set(app.id, meta)

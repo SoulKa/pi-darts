@@ -43,8 +43,7 @@ const stageName = (stageId: string): string =>
   props.detail.stages.find((s) => s.id === stageId)?.name ?? ''
 const liveOnFloor = (floorId: string): Match | undefined =>
   props.detail.matches.find((m) => m.floorId === floorId && m.status === 'live')
-const pendingCount = (): number =>
-  props.detail.matches.filter((m) => m.status === 'pending').length
+const pendingCount = (): number => props.detail.matches.filter((m) => m.status === 'pending').length
 
 async function apply(fn: () => Promise<unknown>): Promise<void> {
   busy.value = true
@@ -72,7 +71,12 @@ function onDragEnd(evt: SortableEvent): void {
   }
   if (sameList) {
     const queue = columns.value.find((c) => c.floor.id === to)?.queue ?? []
-    void apply(() => api.reorderFloorQueue(to, queue.map((m) => m.id)))
+    void apply(() =>
+      api.reorderFloorQueue(
+        to,
+        queue.map((m) => m.id),
+      ),
+    )
   } else {
     void apply(() => api.assignMatchFloor(matchId, to, evt.newIndex))
   }
@@ -178,9 +182,11 @@ async function toggleAutoFill(event: Event): Promise<void> {
             <strong>{{ nameOf(liveOnFloor(column.floor.id)!.participantAId) }}</strong>
             <span class="score">
               {{
-                live.get(liveOnFloor(column.floor.id)!.id)?.legsA ?? liveOnFloor(column.floor.id)!.legsA
+                live.get(liveOnFloor(column.floor.id)!.id)?.legsA ??
+                liveOnFloor(column.floor.id)!.legsA
               }}–{{
-                live.get(liveOnFloor(column.floor.id)!.id)?.legsB ?? liveOnFloor(column.floor.id)!.legsB
+                live.get(liveOnFloor(column.floor.id)!.id)?.legsB ??
+                liveOnFloor(column.floor.id)!.legsB
               }}
             </span>
             <strong>{{ nameOf(liveOnFloor(column.floor.id)!.participantBId) }}</strong>
@@ -212,10 +218,7 @@ async function toggleAutoFill(event: Event): Promise<void> {
             <span class="tag tag-scheduled">Geplant</span>
           </article>
         </VueDraggable>
-        <p
-          v-if="!column.queue.length && !liveOnFloor(column.floor.id)"
-          class="col-empty pd-muted"
-        >
+        <p v-if="!column.queue.length && !liveOnFloor(column.floor.id)" class="col-empty pd-muted">
           Karten hierher ziehen
         </p>
       </section>

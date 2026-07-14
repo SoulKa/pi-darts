@@ -13,7 +13,7 @@ onMounted(async () => {
 
 async function save(): Promise<void> {
   settings.value = await window.launcher.setSettings({
-    autoUpdateOnLaunch: settings.value.autoUpdateOnLaunch,
+    autoUpdateOnLaunch: settings.value.autoUpdateOnLaunch
   })
   saved.value = true
   setTimeout(() => (saved.value = false), 2000)

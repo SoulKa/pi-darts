@@ -323,7 +323,9 @@ onUnmounted(() => feed.close())
             <p class="eyebrow">Turnier abgebrochen</p>
             <h2>Boards erhalten keine neuen Matches.</h2>
           </div>
-          <p class="pd-muted">Reaktivieren zum Fortsetzen oder löschen, um es dauerhaft zu entfernen.</p>
+          <p class="pd-muted">
+            Reaktivieren zum Fortsetzen oder löschen, um es dauerhaft zu entfernen.
+          </p>
         </section>
 
         <section v-if="activeTab === 'setup'" class="setup-workflow">
@@ -332,7 +334,9 @@ onUnmounted(() => feed.close())
               <p class="eyebrow">Geführte Vorbereitung</p>
               <h2>Spielreihenfolge aufbauen</h2>
             </div>
-            <p class="pd-muted">Teilnehmer hinzufügen, Boards vorbereiten, dann Phasen erstellen und generieren.</p>
+            <p class="pd-muted">
+              Teilnehmer hinzufügen, Boards vorbereiten, dann Phasen erstellen und generieren.
+            </p>
           </header>
 
           <section class="pd-panel setup-step">
@@ -348,7 +352,9 @@ onUnmounted(() => feed.close())
             <ul v-if="detail.participants.length" class="players">
               <li v-for="participant in detail.participants" :key="participant.id">
                 <span>{{ participant.name }}</span>
-                <span v-if="participant.seed" class="pd-muted">Setzplatz {{ participant.seed }}</span>
+                <span v-if="participant.seed" class="pd-muted"
+                  >Setzplatz {{ participant.seed }}</span
+                >
                 <button
                   class="remove-button"
                   aria-label="Spieler entfernen"
@@ -358,7 +364,9 @@ onUnmounted(() => feed.close())
                 </button>
               </li>
             </ul>
-            <p v-else class="pd-muted">Alle Spieler hinzufügen, bevor die erste Phase generiert wird.</p>
+            <p v-else class="pd-muted">
+              Alle Spieler hinzufügen, bevor die erste Phase generiert wird.
+            </p>
             <div class="player-create">
               <input
                 v-model="newParticipant.name"
@@ -427,7 +435,9 @@ onUnmounted(() => feed.close())
                 <option value="single">Single-Out</option>
                 <option value="double">Double-Out</option>
               </select>
-              <button :disabled="!newStage.name.trim()" @click="createStage">Phase hinzufügen</button>
+              <button :disabled="!newStage.name.trim()" @click="createStage">
+                Phase hinzufügen
+              </button>
             </div>
           </section>
 
@@ -443,7 +453,10 @@ onUnmounted(() => feed.close())
                 /></label>
                 <label>
                   Qualifikanten / Gruppe
-                  <input v-model="genOpts.qualifiersPerGroup" aria-label="Qualifikanten pro Gruppe" />
+                  <input
+                    v-model="genOpts.qualifiersPerGroup"
+                    aria-label="Qualifikanten pro Gruppe"
+                  />
                 </label>
               </div>
             </div>
@@ -456,7 +469,8 @@ onUnmounted(() => feed.close())
                 <div>
                   <h3>{{ stage.name }}</h3>
                   <p class="pd-muted">
-                    {{ stageTypeLabel(stage.type) }} · Bo{{ stage.bestOf }} · {{ stage.startScore }} ·
+                    {{ stageTypeLabel(stage.type) }} · Bo{{ stage.bestOf }} ·
+                    {{ stage.startScore }} ·
                     {{ outModeLabel(stage.outMode) }}
                   </p>
                 </div>
@@ -534,7 +548,9 @@ onUnmounted(() => feed.close())
                   <span>abgeschlossen</span>
                 </div>
               </div>
-              <p class="pd-muted">Zugewiesene Matches bleiben auf „Spielbereit“, bis ihr Board sie übernimmt.</p>
+              <p class="pd-muted">
+                Zugewiesene Matches bleiben auf „Spielbereit“, bis ihr Board sie übernimmt.
+              </p>
             </article>
           </section>
 
@@ -581,7 +597,8 @@ onUnmounted(() => feed.close())
             </div>
             <div v-else class="pd-panel pd-panel--compact empty-stages">
               <p class="pd-muted">
-                Es wurden noch keine Phasen erstellt. Wechsle zu „Einrichtung“, um die Auslosung vorzubereiten.
+                Es wurden noch keine Phasen erstellt. Wechsle zu „Einrichtung“, um die Auslosung
+                vorzubereiten.
               </p>
             </div>
           </section>
