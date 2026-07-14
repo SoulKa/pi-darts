@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
-import type { StageType } from '@pi-darts/shared'
+import type { StageType } from '@pipod/shared'
 import { useTournamentFeed } from '../feed'
 
 const STAGE_TYPE_LABELS: Record<StageType, string> = {

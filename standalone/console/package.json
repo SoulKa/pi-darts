@@ -1,5 +1,5 @@
 {
-  "name": "@pi-darts/console",
+  "name": "@pipod/console",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@pi-darts/shared": "*",
+    "@pipod/shared": "*",
     "socket.io-client": "4.8.3",
     "vue": "^3.5.39",
     "vue-draggable-plus": "0.6.1",

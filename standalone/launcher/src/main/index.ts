@@ -186,7 +186,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId('com.pi-darts.launcher')
+  electronApp.setAppUserModelId('com.pipod.launcher')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

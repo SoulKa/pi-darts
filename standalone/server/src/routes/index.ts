@@ -12,7 +12,7 @@ import {
   reorderQueueSchema,
   reportLegSchema,
   updateParticipantSchema,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 import { repo } from '../repo'
 import {
   addParticipant,

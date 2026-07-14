@@ -1,6 +1,6 @@
 // Thin typed query helpers over Drizzle. Keeps SQL-ish detail out of the services.
 import { and, asc, eq, inArray } from 'drizzle-orm'
-import type { Floor, Match, Participant, Stage, Tournament } from '@pi-darts/shared'
+import type { Floor, Match, Participant, Stage, Tournament } from '@pipod/shared'
 import { db } from './db/client'
 import {
   floors,

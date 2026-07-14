@@ -1,12 +1,12 @@
-# GitHub Copilot instructions — pi-darts
+# GitHub Copilot instructions — piPod
 
 Custom instructions for GitHub Copilot when working in this repository.
 
 ## Project and commands
 
-**pi-darts** is a Yarn 4.17.1 workspace for a touch-first Raspberry Pi darts board, a
-tournament console, a LAN-hosted tournament server, and an Electron launcher that packages the
-apps onto the Pi. Use Node.js `^22.18.0 || >=24.12.0`.
+**piPod** is a Yarn 4.17.1 workspace for a touch-first Raspberry Pi app platform: a darts board,
+a kiosk dashboard, a tournament console, a LAN-hosted tournament server, and an Electron launcher
+that packages the apps onto the Pi. Use Node.js `^22.18.0 || >=24.12.0`.
 
 ```sh
 yarn install
@@ -25,16 +25,16 @@ yarn format:check     # verify formatting without changes
 yarn preview:board
 yarn preview:console
 yarn start:server
-yarn workspace @pi-darts/server db:generate  # after changing the Drizzle schema
-yarn workspace @pi-darts/server db:check     # validate migration metadata
+yarn workspace @pipod/server db:generate  # after changing the Drizzle schema
+yarn workspace @pipod/server db:check     # validate migration metadata
 ```
 
 Automated tests run under vitest (`yarn test` from the repo root — cannot be run from inside a
 workspace under Yarn 4). For a focused check, run the owning workspace's type check, for
-example `yarn workspace @pi-darts/board type-check`, `yarn workspace @pi-darts/console
-type-check`, `yarn workspace @pi-darts/server type-check`, or `yarn workspace @pi-darts/shared
+example `yarn workspace @pipod/board type-check`, `yarn workspace @pipod/console
+type-check`, `yarn workspace @pipod/server type-check`, or `yarn workspace @pipod/shared
 type-check`. The launcher's script is named `typecheck` (no hyphen):
-`yarn workspace @pi-darts/launcher typecheck`, and it also has an eslint `lint` script.
+`yarn workspace @pipod/launcher typecheck`, and it also has an eslint `lint` script.
 
 ## Architecture
 
@@ -48,10 +48,10 @@ type-check`. The launcher's script is named `typecheck` (no hyphen):
   development, its Vite proxy forwards both `/api` and `/socket.io` to `SERVER_URL` (default
   `http://localhost:3000`).
 - `standalone/server` exposes the Fastify REST API and Socket.IO on one port. Routes validate request
-  bodies with schemas from `@pi-darts/shared`, services mutate SQLite through Drizzle, and
+  bodies with schemas from `@pipod/shared`, services mutate SQLite through Drizzle, and
   `realtime/` broadcasts snapshots, match changes, and the in-memory live-score mirror. It can
   serve a built console SPA when `CONSOLE_DIR` is set; SQLite lives at
-  `${DATA_DIR:-./data}/pi-darts.db`. Drizzle applies committed migrations at startup; define
+  `${DATA_DIR:-./data}/pipod.db`. Drizzle applies committed migrations at startup; define
   table and index changes only in `standalone/server/src/db/schema.ts`, then generate a migration.
 - `packages/shared` is the contract boundary: domain models, Zod request schemas, and typed
   Socket.IO event maps are exported from its root. Change these contracts before adapting server
@@ -90,7 +90,7 @@ type-check`. The launcher's script is named `typecheck` (no hyphen):
   asserting emitted events / behavior over post-interaction DOM state: under happy-dom, `await
 wrapper.trigger(...)` updates component refs (so `emitted()` is reliable) but doesn't always flush
   the computed-driven re-render, so checks like `attributes('disabled')` after a click can be stale.
-- The shared domain mirrors board scoring vocabulary. Use `@pi-darts/shared` types and schemas
+- The shared domain mirrors board scoring vocabulary. Use `@pipod/shared` types and schemas
   rather than duplicating request payloads or Socket.IO event signatures in an app.
 - Keep REST mutations broadcasting through `realtime/hub.ts` so console overview state remains
   synchronized. The live-score mirror is display-only and resets after each reported leg.

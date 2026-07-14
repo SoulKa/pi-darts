@@ -11,7 +11,7 @@ interface Release {
   assets: ReleaseAsset[]
 }
 
-const UA = 'pi-darts-launcher'
+const UA = 'pipod-launcher'
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await net.fetch(url, {

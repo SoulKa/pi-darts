@@ -5,7 +5,7 @@ export const PIAPP_SCHEME = 'piapp'
 
 /** GitHub repo whose Releases host manifest.json + the per-app .tar.gz bundles. */
 export const GITHUB_OWNER = 'SoulKa'
-export const GITHUB_REPO = 'pi-darts'
+export const GITHUB_REPO = 'piPod'
 
 /** App shown/launched first on a fresh install. */
 export const DEFAULT_APP_ID = 'board'

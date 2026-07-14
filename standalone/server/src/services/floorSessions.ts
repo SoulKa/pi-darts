@@ -1,7 +1,7 @@
 // Durable floor-board state. SQLite stores JSON, but every value is validated before use.
 import { and, eq } from 'drizzle-orm'
-import type { BoardGameSnapshot, BoardSession, Floor, Match } from '@pi-darts/shared'
-import { boardGameSnapshotSchema } from '@pi-darts/shared'
+import type { BoardGameSnapshot, BoardSession, Floor, Match } from '@pipod/shared'
+import { boardGameSnapshotSchema } from '@pipod/shared'
 import { db } from '../db/client'
 import { floorSessions } from '../db/schema'
 

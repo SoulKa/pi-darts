@@ -6,7 +6,7 @@ import type {
   InterServerEvents,
   ServerToClientEvents,
   SocketData,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 import { buildApp } from './app'
 import { env } from './env'
 import { setupRealtime } from './realtime'
@@ -22,4 +22,4 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEve
 setupRealtime(io)
 
 await app.listen({ host: env.host, port: env.port })
-app.log.info(`pi-darts server listening on http://${env.host}:${env.port}`)
+app.log.info(`piPod server listening on http://${env.host}:${env.port}`)

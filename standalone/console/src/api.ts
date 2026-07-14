@@ -8,7 +8,7 @@ import type {
   Participant,
   Stage,
   Tournament,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 
 export interface GroupView {
   id: string

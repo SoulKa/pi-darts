@@ -1,7 +1,7 @@
 {
-  "name": "@pi-darts/launcher",
+  "name": "@pipod/launcher",
   "version": "1.0.0",
-  "description": "pi-darts Electron launcher: home screen + app store shell for the Pi",
+  "description": "piPod Electron launcher: home screen + app store shell for the Pi",
   "main": "./out/main/index.js",
   "scripts": {
     "format": "prettier --write .",

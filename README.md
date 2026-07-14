@@ -1,35 +1,29 @@
-# 🎯 pi-darts
+# 📟 piPod
 
-A touch-first darts scoreboard for the Raspberry Pi. Built with Vue 3 + Vite, it runs
-full-screen on the Pi's touchscreen and is scored entirely by tapping — no hardware keyboard
-required.
+A touch-first **app platform for the Raspberry Pi**. An Electron launcher runs full-screen on
+the Pi's touchscreen and presents a home screen of installable apps, an app store, and settings —
+each app launches in its own view. Built with Vue 3 + Vite; scored/driven entirely by tapping.
 
-## Features
+## Apps & workspaces
 
-- **Game modes** — start from **301** or **501**, with **single-out** or **double-out**
-  finishing rules (full standard checkout rules: must finish on a double, leaving 1 busts).
-  Configurable from the gear (⚙️) on the setup screen.
-- **Any number of players** — add, rename, remove, and select players. The roster and options
-  are **persisted** across sessions (via `localStorage`), so the app comes back up with your
-  regulars already there.
-- **Bull-out ordering** — set the play order by tapping names; the name row stays put and
-  scrolls horizontally for long rosters.
-- **Checkout suggestions** — while you throw, the number pad shows up to three ways to finish
-  from the current score, respecting the active out mode and darts left in the turn.
-- **Turn handling** — 3 darts per turn, bust detection, per-turn undo, and finish/placement
-  overlays for multi-player games.
-- **Touchscreen-friendly** — large tap targets sized for finger input, an on-screen keyboard
-  for naming, and a confirmation guard before a "New Game" discards an in-progress match.
+- **`apps/board`** — the touch-first darts scoreboard. Start from **301**/**501** with
+  **single-out** or **double-out** rules, any number of players, per-turn undo, bull-out ordering,
+  and live checkout suggestions. Plays offline standalone or joins a tournament.
+- **`apps/dashboard`** — a kiosk dashboard: current weather + forecast (Open-Meteo) and Stuttgart
+  VVS transit departures. Pure static SPA, no backend.
+- **`standalone/console`** — Vue Router tournament management/overview app.
+- **`standalone/server`** — Fastify + Socket.IO tournament server on a single port; SQLite via
+  Drizzle.
+- **`standalone/launcher`** — the Electron shell that installs/updates app bundles and launches
+  each as a `WebContentsView`.
+- **`packages/shared`** (`@pipod/shared`) — domain models, Zod schemas, and Socket.IO event maps
+  shared by everything above.
 
 ## Tech stack
 
 - [Vue 3](https://vuejs.org/) (`<script setup>`, composition API)
-- [Vite](https://vite.dev/) for dev/build
+- [Vite](https://vite.dev/) for dev/build, [Electron](https://www.electronjs.org/) for the launcher
 - TypeScript, type-checked with `vue-tsc`
-
-Game logic lives in [`src/game/`](src/game/) as framework-agnostic modules
-(`useDartGame.ts`, `checkout.ts`, `setupStorage.ts`); the UI is a small set of components
-under [`src/components/`](src/components/).
 
 ## Project setup
 
@@ -41,8 +35,10 @@ yarn install
 
 ```sh
 yarn dev:board
+yarn dev:dashboard
 yarn dev:console
 yarn dev:server
+yarn dev:launcher
 ```
 
 ### Type-check
@@ -61,32 +57,22 @@ yarn format:check
 ### Build for production
 
 ```sh
-yarn build
-```
-
-Preview the frontends locally with:
-
-```sh
-yarn preview:board
-yarn preview:console
-```
-
-Run the server without the watcher with:
-
-```sh
-yarn start:server
+yarn build            # type-check + build board & console
+yarn build:launcher   # package the Electron launcher
+yarn prepare-seed     # build store apps + regenerate the launcher's seed manifest
 ```
 
 ## Running on the Raspberry Pi
 
-Serve the contents of `dist/` (any static server works) and open it full-screen in the Pi's
-browser (e.g. Chromium in kiosk mode) pointed at the local URL. The UI is designed for the
-Pi's touchscreen resolution and assumes touch input.
+The launcher is the entry point on the Pi: it installs the seeded app bundles on first run and
+self-updates them from the GitHub Release the launcher points at (`GITHUB_OWNER`/`GITHUB_REPO` in
+`standalone/launcher/src/main/config.ts`). The UI targets the Pi's portrait touchscreen and
+assumes touch input.
 
 ## Requirements
 
 - Node.js `^22.18.0 || >=24.12.0` (see `engines` in `package.json`)
 - Yarn `4.17.1` (via the `packageManager` field in `package.json`)
 
-Yarn replaces npm in this repo, but it does **not** replace Node.js. Node is still required to
-run Vite, TypeScript, and the server-side tooling.
+Yarn replaces npm in this repo, but it does **not** replace Node.js. Node is still required to run
+Vite, TypeScript, Electron, and the server-side tooling.

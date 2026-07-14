@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, reactive, ref } from 'vue'
-import type { OutMode, StageType, StartScore, Tournament, TournamentStatus } from '@pi-darts/shared'
+import type { OutMode, StageType, StartScore, Tournament, TournamentStatus } from '@pipod/shared'
 import { api } from '../api'
 import { useTournamentFeed } from '../feed'
 import ScheduleBoard from '../components/ScheduleBoard.vue'

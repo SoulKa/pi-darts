@@ -9,7 +9,7 @@ import type {
   Multiplier,
   ServerToClientEvents,
   Tournament,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 
 type BoardSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 

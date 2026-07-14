@@ -10,7 +10,7 @@ import type {
   ServerToClientEvents,
   SocketData,
   TournamentSnapshot,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 import { repo } from '../repo'
 import { computeStandings } from '../engine'
 

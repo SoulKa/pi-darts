@@ -1,6 +1,6 @@
 // Overview live state is derived from the board's durable full snapshot, never from
 // an independently reconstructed sequence of per-dart socket messages.
-import type { BoardGameSnapshot, LiveMatchState, Match } from '@pi-darts/shared'
+import type { BoardGameSnapshot, LiveMatchState, Match } from '@pipod/shared'
 
 export function createMatchSnapshot(
   match: Match,

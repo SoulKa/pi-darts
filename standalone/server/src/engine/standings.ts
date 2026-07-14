@@ -1,5 +1,5 @@
 // Pure standings computation for round-robin groups.
-import type { Match, Standing } from '@pi-darts/shared'
+import type { Match, Standing } from '@pipod/shared'
 
 /** Points awarded per win in group tables. */
 export const POINTS_PER_WIN = 2

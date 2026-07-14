@@ -1,7 +1,7 @@
 // Pure single-elimination bracket generation. Produces matches with LOCAL ids and
 // links (nextLocalId/nextSlot); the service maps local ids to real db ids. Byes are
 // left as null slots for the caller to resolve.
-import type { BracketSlot } from '@pi-darts/shared'
+import type { BracketSlot } from '@pipod/shared'
 
 export interface BracketMatch {
   localId: string

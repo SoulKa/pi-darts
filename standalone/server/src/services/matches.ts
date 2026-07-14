@@ -2,7 +2,7 @@
 // through a knockout bracket. DB-facing; the pure math lives in ../engine.
 import { nanoid } from 'nanoid'
 import { eq } from 'drizzle-orm'
-import type { Match } from '@pi-darts/shared'
+import type { Match } from '@pipod/shared'
 import { db } from '../db/client'
 import { legs, matches } from '../db/schema'
 import { repo } from '../repo'

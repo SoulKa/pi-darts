@@ -6,8 +6,8 @@ import type {
   Match,
   ServerToClientEvents,
   SocketData,
-} from '@pi-darts/shared'
-import { boardSnapshotPayloadSchema } from '@pi-darts/shared'
+} from '@pipod/shared'
+import { boardSnapshotPayloadSchema } from '@pipod/shared'
 import { repo } from '../repo'
 import { dispatchMatch, reportLeg } from '../services/matches'
 import { maybeAutoAssign } from '../services/scheduler'

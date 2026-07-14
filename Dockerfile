@@ -16,12 +16,12 @@ COPY standalone/launcher/package.json standalone/launcher/
 
 # Install only the server + console workspaces and their deps — deliberately skips the Electron
 # launcher toolchain, which has no place in the server image.
-RUN yarn workspaces focus @pi-darts/server @pi-darts/console
+RUN yarn workspaces focus @pipod/server @pipod/console
 
 COPY . .
 
 # Build the console SPA that the server will serve.
-RUN yarn workspace @pi-darts/console build-only
+RUN yarn workspace @pipod/console build-only
 
 FROM node:24-bookworm-slim AS runtime
 WORKDIR /app

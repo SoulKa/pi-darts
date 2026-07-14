@@ -2,14 +2,7 @@
 // schedule/bracket generation that turns a stage into concrete matches.
 import { nanoid } from 'nanoid'
 import { eq, inArray } from 'drizzle-orm'
-import type {
-  CreateStageInput,
-  Floor,
-  Match,
-  Participant,
-  Stage,
-  Tournament,
-} from '@pi-darts/shared'
+import type { CreateStageInput, Floor, Match, Participant, Stage, Tournament } from '@pipod/shared'
 import { db } from '../db/client'
 import {
   floorSessions,

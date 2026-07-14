@@ -24,13 +24,13 @@ jobs:
 
       - run: corepack enable
 
-      # Install only the board workspace — keeps the Electron toolchain (and its git dep) out
-      # of the release build. Add more `@pi-darts/<app>` here as store apps grow.
+      # Install only the store-app workspaces — keeps the Electron toolchain (and its git dep)
+      # out of the release build. Add more `@pipod/<app>` here as store apps grow.
       - name: Install store-app workspaces
-        run: yarn workspaces focus @pi-darts/board
+        run: yarn workspaces focus @pipod/board @pipod/dashboard
 
       - name: Build store apps
-        run: yarn workspace @pi-darts/board build-only
+        run: yarn workspace @pipod/board build-only && yarn workspace @pipod/dashboard build-only
 
       - name: Generate release artifacts + manifest
         run: node scripts/build-manifest.mjs
