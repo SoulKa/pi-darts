@@ -101,7 +101,6 @@ onUnmounted(() => disposers.forEach((d) => d()))
       >
         <img class="tile-icon" :src="`piapp://${app.id}/${app.icon}`" alt="" />
         <span class="tile-name">{{ app.name ?? nameOf(app.id) }}</span>
-        <span class="tile-version">v{{ app.version }}</span>
       </button>
       <p v-if="!installed.length" class="empty">No apps installed yet — open the Store.</p>
     </main>
@@ -167,9 +166,11 @@ onUnmounted(() => disposers.forEach((d) => d()))
 .grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  grid-auto-rows: 140px;
-  gap: 16px;
+  /* Springboard-style: icon-sized cells, evenly spaced, more per row. */
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-rows: min-content;
+  gap: 28px 12px;
+  justify-items: center;
   align-content: start;
   overflow-y: auto;
 }
@@ -177,32 +178,30 @@ onUnmounted(() => disposers.forEach((d) => d()))
 .tile {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 16px;
-  background: linear-gradient(160deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  text-align: left;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  /* No card chrome — the icon itself is the affordance, iPhone-style. */
+  background: none;
+  border: none;
 }
 
 .tile-icon {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-  /* Sit at the top of the tile; the name/version stay pinned to the bottom. */
-  margin-bottom: auto;
+  width: 104px;
+  height: 104px;
+  border-radius: 24px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
 .tile-name {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.tile-version {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .empty {
