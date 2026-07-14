@@ -6,7 +6,7 @@ import { AppStore } from './appStore'
 import { handlePiappProtocol, registerPiappScheme } from './protocol'
 import { PIAPP_SCHEME } from './config'
 import { loadSettings, saveSettings } from './settings'
-import { HOME_BUTTON_MARGIN, HOME_BUTTON_SIZE } from '../shared/constants'
+import { HOME_NOTCH_HEIGHT, HOME_NOTCH_WIDTH } from '../shared/constants'
 import type { LauncherSettings, UpdateProgress } from '../shared/types'
 
 // Serve installed app bundles over piapp://. Must be registered before app 'ready'.
@@ -43,6 +43,9 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 720 * DEV_SCALE,
     height: 1280 * DEV_SCALE,
+    // Treat width/height as the content area so the window frame/title bar doesn't shrink it
+    // (otherwise the zoomed board is <1280px tall and scrolls).
+    useContentSize: true,
     show: false,
     autoHideMenuBar: true,
     // Kiosk on the Pi; windowed in dev so it's not full-screen while iterating.
@@ -74,14 +77,14 @@ function createWindow(): void {
 function layoutViews(): void {
   if (!mainWindow) return
   const { width, height } = mainWindow.getContentBounds()
-  const btn = HOME_BUTTON_SIZE * DEV_SCALE
-  const margin = HOME_BUTTON_MARGIN * DEV_SCALE
+  const w = HOME_NOTCH_WIDTH * DEV_SCALE
+  const h = HOME_NOTCH_HEIGHT * DEV_SCALE
   appView?.setBounds({ x: 0, y: 0, width, height })
   homeButton?.setBounds({
-    x: Math.round((width - btn) / 2),
-    y: Math.round(height - btn - margin),
-    width: Math.round(btn),
-    height: Math.round(btn)
+    x: Math.round((width - w) / 2),
+    y: 0, // hangs from the top edge
+    width: Math.round(w),
+    height: Math.round(h)
   })
 }
 

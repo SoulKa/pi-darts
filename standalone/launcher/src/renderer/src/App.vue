@@ -78,8 +78,8 @@ onUnmounted(() => disposers.forEach((d) => d()))
 </script>
 
 <template>
-  <!-- Overlay role: just the small floating Home circle that fills its button-sized view. -->
-  <button v-if="isOverlay" class="home-fab" title="Home" @click="goHome">⌂</button>
+  <!-- Overlay role: a small Home notch tab hanging from the top edge, filling its overlay view. -->
+  <button v-if="isOverlay" class="home-notch" title="Home" @click="goHome">⌂</button>
 
   <!-- Launcher home screen -->
   <div v-else class="home">
@@ -117,17 +117,19 @@ onUnmounted(() => disposers.forEach((d) => d()))
 </template>
 
 <style scoped>
-.home-fab {
+.home-notch {
   width: 100%;
   height: 100%;
+  min-height: 0;
   padding: 0;
-  border-radius: 50%;
-  font-size: 24px;
+  /* tab hanging from the top edge: only the bottom corners are rounded */
+  border-radius: 0 0 16px 16px;
+  font-size: 18px;
   line-height: 1;
   color: #062c33;
   background: var(--accent);
   border: none;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
   opacity: 0.85;
 }
 
