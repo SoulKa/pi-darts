@@ -2,6 +2,8 @@
   "name": "@pipod/launcher",
   "version": "1.0.0",
   "description": "piPod Electron launcher: home screen + app store shell for the Pi",
+  "homepage": "https://github.com/SoulKa/pipod",
+  "author": "SoulKa",
   "main": "./out/main/index.js",
   "scripts": {
     "format": "prettier --write .",
