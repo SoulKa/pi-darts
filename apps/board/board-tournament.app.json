@@ -1,0 +1,6 @@
+{
+  "displayName": "Tournament Board",
+  "description": "Touch-first darts scoreboard",
+  "icon": "icon-tournament.svg",
+  "query": "mode=tournament"
+}

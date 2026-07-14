@@ -91,7 +91,9 @@ const hint = computed(() => {
       >
         Triple
       </button>
-      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">↺︎ Rückgängig</button>
+      <button class="key undo" :disabled="!props.canUndo" @click="emit('undo')">
+        ↺︎ Rückgängig
+      </button>
     </div>
   </div>
 </template>

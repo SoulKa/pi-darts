@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "standalone/*"
   ],
   "engines": {
     "node": "^22.18.0 || >=24.12.0"
@@ -14,17 +15,22 @@
     "dev:board": "yarn workspace @pi-darts/board dev",
     "dev:console": "yarn workspace @pi-darts/console dev",
     "dev:server": "yarn workspace @pi-darts/server dev",
+    "dev:launcher": "yarn workspace @pi-darts/launcher dev",
     "preview:board": "yarn workspace @pi-darts/board preview",
     "preview:console": "yarn workspace @pi-darts/console preview",
     "start:server": "yarn workspace @pi-darts/server start",
+    "build:launcher": "yarn workspace @pi-darts/launcher build",
+    "prepare-seed": "yarn workspace @pi-darts/board build-only && OUT_DIR=standalone/launcher/resources/seed node scripts/build-manifest.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "yarn type-check && yarn workspace @pi-darts/board build-only && yarn workspace @pi-darts/console build-only",
-    "type-check": "yarn workspace @pi-darts/shared type-check && yarn workspace @pi-darts/server type-check && yarn workspace @pi-darts/board type-check && yarn workspace @pi-darts/console type-check",
+    "type-check": "yarn workspace @pi-darts/shared type-check && yarn workspace @pi-darts/server type-check && yarn workspace @pi-darts/board type-check && yarn workspace @pi-darts/console type-check && yarn workspace @pi-darts/launcher typecheck",
     "format": "prettier --write . --ignore-unknown",
     "format:check": "prettier --check . --ignore-unknown"
   },
   "devDependencies": {
+    "@vue/test-utils": "2.4.11",
+    "happy-dom": "20.10.6",
     "prettier": "3.9.5",
     "vitest": "4.1.10"
   },
