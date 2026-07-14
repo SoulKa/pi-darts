@@ -20,6 +20,7 @@
     "preview:console": "yarn workspace @pi-darts/console preview",
     "start:server": "yarn workspace @pi-darts/server start",
     "build:launcher": "yarn workspace @pi-darts/launcher build",
+    "prepare-seed": "yarn workspace @pi-darts/board build-only && OUT_DIR=standalone/launcher/resources/seed node scripts/build-manifest.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "yarn type-check && yarn workspace @pi-darts/board build-only && yarn workspace @pi-darts/console build-only",

@@ -1,16 +1,36 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type {
+  CatalogEntry,
+  InstalledApp,
+  LauncherBridge,
+  LauncherSettings,
+  UpdateProgress,
+} from '../shared/types'
 
-// Custom APIs for renderer
-const api = {}
+function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
+  const listener = (_e: IpcRendererEvent, payload: T): void => cb(payload)
+  ipcRenderer.on(channel, listener)
+  return () => ipcRenderer.removeListener(channel, listener)
+}
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+const launcher: LauncherBridge = {
+  listInstalled: () => ipcRenderer.invoke('launcher:listInstalled') as Promise<InstalledApp[]>,
+  checkForUpdates: () => ipcRenderer.invoke('launcher:checkForUpdates') as Promise<CatalogEntry[]>,
+  installOrUpdate: (id) => ipcRenderer.invoke('launcher:installOrUpdate', id) as Promise<void>,
+  launchApp: (id) => ipcRenderer.invoke('launcher:launchApp', id) as Promise<void>,
+  goHome: () => ipcRenderer.invoke('launcher:goHome') as Promise<void>,
+  getSettings: () => ipcRenderer.invoke('launcher:getSettings') as Promise<LauncherSettings>,
+  setSettings: (patch) => ipcRenderer.invoke('launcher:setSettings', patch) as Promise<LauncherSettings>,
+  onProgress: (cb) => subscribe<UpdateProgress>('launcher:progress', cb),
+  onActiveApp: (cb) => subscribe<string | null>('launcher:activeApp', cb),
+  onAutoUpdated: (cb) => subscribe<string[]>('launcher:autoUpdated', cb),
+}
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('launcher', launcher)
   } catch (error) {
     console.error(error)
   }
@@ -18,5 +38,5 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = api
+  window.launcher = launcher
 }
