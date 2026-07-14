@@ -6,13 +6,12 @@
     "src/renderer/src/**/*.vue",
     "src/preload/*.d.ts"
   ],
+  "exclude": ["src/renderer/src/**/*.test.ts"],
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
     "paths": {
-      "@renderer/*": [
-        "src/renderer/src/*"
-      ]
+      "@renderer/*": ["src/renderer/src/*"]
     }
   }
 }

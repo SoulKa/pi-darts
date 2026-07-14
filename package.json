@@ -29,6 +29,8 @@
     "format:check": "prettier --check . --ignore-unknown"
   },
   "devDependencies": {
+    "@vue/test-utils": "2.4.11",
+    "happy-dom": "20.10.6",
     "prettier": "3.9.5",
     "vitest": "4.1.10"
   },

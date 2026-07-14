@@ -34,7 +34,7 @@ yarn type-check       # all workspaces; primary automated gate
 yarn build            # type-check, then build board + console
 yarn build:launcher   # build the Electron launcher (electron-vite + electron-builder)
 yarn prepare-seed     # build the board and regenerate the launcher's seed manifest
-yarn test             # run the vitest suites once (server + console)
+yarn test             # run the vitest suites once (board, console, launcher, server)
 yarn test:watch       # vitest in watch mode
 yarn format           # prettier --write
 yarn format:check     # prettier --check
@@ -52,8 +52,13 @@ Testing / verification:
 - For a focused type check use the owning workspace, e.g. `yarn workspace @pi-darts/server
 type-check`. The **launcher's** script is `typecheck` (no hyphen) and it also has an eslint
   `lint` script; the other workspaces have no lint script.
-- There is no board test suite — verify board UI/behavior by running `yarn dev:board` and
-  exercising the flow in a browser.
+- Every workspace has a vitest suite (board covers the game engine + a component test). For
+  UI/behavior not covered by tests, verify by running the relevant `yarn dev:*` and exercising the
+  flow in a browser.
+- **Run one command per Bash call.** Chaining with `&&` / `;`, piping into `tail`/`head`, and
+  reading exit codes with `echo $?` (or `echo $EXIT`) all trigger manual approval prompts. A
+  single command per call runs without approval — e.g. run `yarn test --project board` and
+  `yarn type-check` as separate calls instead of joining them.
 
 ## Architecture
 
@@ -117,6 +122,14 @@ manifest bundled under `resources/seed`.
   the on-screen keyboard for names. Don't shrink tap targets.
 - Keep board scoring logic pure and UI-agnostic in `apps/board/src/game`; components stay focused
   on presentation and interaction.
+- Cover important functionality with vitest — especially pure logic like the scoring/checkout
+  engine (`apps/board/src/game`) and the server's scheduling engine (`standalone/server/src/engine`).
+  Add or update tests alongside behavior changes. Vue component tests use `@vue/test-utils` +
+  `happy-dom`; the frontend apps (board, console, launcher) share the DOM test config via the root
+  `vitest.vue.ts` helper, and all four workspaces run under `yarn test`. In component tests, prefer
+  asserting emitted events / behavior over post-interaction DOM state: under happy-dom, `await
+wrapper.trigger(...)` updates component refs (so `emitted()` is reliable) but doesn't always flush
+  the computed-driven re-render, so checks like `attributes('disabled')` after a click can be stale.
 
 ## Constraints (dependencies & tooling)
 

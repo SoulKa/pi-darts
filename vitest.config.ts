@@ -5,6 +5,6 @@ import { defineConfig } from 'vitest/config'
 // process with each project's config applied — so the server still gets DB_FILE=:memory:.
 export default defineConfig({
   test: {
-    projects: ['standalone/console', 'standalone/server'],
+    projects: ['apps/board', 'standalone/console', 'standalone/launcher', 'standalone/server'],
   },
 })

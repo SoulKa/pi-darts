@@ -18,7 +18,7 @@ yarn type-check       # all workspaces; primary automated check
 yarn build            # type-check, then build the board and console
 yarn build:launcher   # build the Electron launcher (electron-vite + electron-builder)
 yarn prepare-seed     # build the board and regenerate the launcher seed manifest
-yarn test             # run the vitest suites once (server + console)
+yarn test             # run the vitest suites once (board, console, launcher, server)
 yarn test:watch       # vitest in watch mode
 yarn format           # format supported source and config files
 yarn format:check     # verify formatting without changes
@@ -82,6 +82,14 @@ type-check`. The launcher's script is named `typecheck` (no hyphen):
   use the on-screen keyboard for player names.
 - Keep board scoring logic framework-light and UI-agnostic in `apps/board/src/game`; components
   should stay focused on presentation and interaction.
+- Cover important functionality with vitest — especially pure logic like the scoring/checkout
+  engine (`apps/board/src/game`) and the server's scheduling engine (`standalone/server/src/engine`).
+  Add or update tests alongside behavior changes. Vue component tests use `@vue/test-utils` +
+  `happy-dom`; the frontend apps (board, console, launcher) share the DOM test config via the root
+  `vitest.vue.ts` helper, and all four workspaces run under `yarn test`. In component tests, prefer
+  asserting emitted events / behavior over post-interaction DOM state: under happy-dom, `await
+wrapper.trigger(...)` updates component refs (so `emitted()` is reliable) but doesn't always flush
+  the computed-driven re-render, so checks like `attributes('disabled')` after a click can be stale.
 - The shared domain mirrors board scoring vocabulary. Use `@pi-darts/shared` types and schemas
   rather than duplicating request payloads or Socket.IO event signatures in an app.
 - Keep REST mutations broadcasting through `realtime/hub.ts` so console overview state remains

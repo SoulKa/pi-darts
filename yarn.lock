@@ -1558,6 +1558,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@one-ini/wasm@npm:0.1.1":
+  version: 0.1.1
+  resolution: "@one-ini/wasm@npm:0.1.1"
+  checksum: 10c0/54700e055037f1a63bfcc86d24822203b25759598c2c3e295d1435130a449108aebc119c9c2e467744767dbe0b6ab47a182c61aa1071ba7368f5e20ab197ba65
+  languageName: node
+  linkType: hard
+
 "@oxc-project/types@npm:=0.139.0":
   version: 0.139.0
   resolution: "@oxc-project/types@npm:0.139.0"
@@ -2149,7 +2156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=10.0.0":
+"@types/node@npm:*, @types/node@npm:>=10.0.0, @types/node@npm:>=20.0.0":
   version: 26.1.1
   resolution: "@types/node@npm:26.1.1"
   dependencies:
@@ -2218,7 +2225,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.5.12":
+"@types/whatwg-mimetype@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@types/whatwg-mimetype@npm:3.0.2"
+  checksum: 10c0/dad39d1e4abe760a0a963c84bbdbd26b1df0eb68aff83bdf6ecbb50ad781ead777f6906d19a87007790b750f7500a12e5624d31fc6a1529d14bd19b5c3a316d1
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8.18.1, @types/ws@npm:^8.5.12":
   version: 8.18.1
   resolution: "@types/ws@npm:8.18.1"
   dependencies:
@@ -2868,6 +2882,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vue/test-utils@npm:2.4.11":
+  version: 2.4.11
+  resolution: "@vue/test-utils@npm:2.4.11"
+  dependencies:
+    js-beautify: "npm:^1.14.9"
+    vue-component-type-helpers: "npm:^3.0.0"
+  peerDependencies:
+    "@vue/compiler-dom": 3.x
+    "@vue/server-renderer": 3.x
+    vue: 3.x
+  peerDependenciesMeta:
+    "@vue/server-renderer":
+      optional: true
+  checksum: 10c0/7e964df1b011de5e0c782f61300ce22d43ccdca5c58dfe07303d700cd1a8e423480b3144076f2a83c241326d25ab383a9e3d3fe51509c7adc3fa276dd465c78b
+  languageName: node
+  linkType: hard
+
 "@vue/tsconfig@npm:^0.9.1":
   version: 0.9.1
   resolution: "@vue/tsconfig@npm:0.9.1"
@@ -2901,6 +2932,13 @@ __metadata:
   version: 1.1.1
   resolution: "abbrev@npm:1.1.1"
   checksum: 10c0/3f762677702acb24f65e813070e306c61fafe25d4b2583f9dfc935131f774863f3addd5741572ed576bd69cabe473c5af18e1e108b829cb7b6b4747884f726e6
+  languageName: node
+  linkType: hard
+
+"abbrev@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "abbrev@npm:2.0.0"
+  checksum: 10c0/f742a5a107473946f426c691c08daba61a1d15942616f300b5d32fd735be88fef5cba24201757b6c407fd564555fb48c751cfa33519b2605c8a7aadd22baf372
   languageName: node
   linkType: hard
 
@@ -3384,6 +3422,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"buffer-image-size@npm:^0.6.4":
+  version: 0.6.4
+  resolution: "buffer-image-size@npm:0.6.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/7158205c8726caa521d3ae6ef7bc341eff211ff86f7278d122e45062e1720afef2f7ad8e845edc96c04f499b292c4ec8a74df9836a25074881260ba00b863448
+  languageName: node
+  linkType: hard
+
 "buffer@npm:^5.1.0, buffer@npm:^5.5.0":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
@@ -3673,6 +3720,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^10.0.0":
+  version: 10.0.1
+  resolution: "commander@npm:10.0.1"
+  checksum: 10c0/53f33d8927758a911094adadda4b2cbac111a5b377d8706700587650fd8f45b0bbe336de4b5c3fe47fd61f420a3d9bd452b6e0e6e5600a7e74d7bf0174f6efe3
+  languageName: node
+  linkType: hard
+
 "commander@npm:^5.0.0":
   version: 5.1.0
   resolution: "commander@npm:5.1.0"
@@ -3705,6 +3759,16 @@ __metadata:
   version: 0.2.4
   resolution: "confbox@npm:0.2.4"
   checksum: 10c0/4c36af33d9df7034300c452f7b289179264493bd0671fa81b995a0d70dc897b1d37f1af10d3ffb187f178d17ba1ed2ba167ed0f599ba3a139c271205dd553f73
+  languageName: node
+  linkType: hard
+
+"config-chain@npm:^1.1.13":
+  version: 1.1.13
+  resolution: "config-chain@npm:1.1.13"
+  dependencies:
+    ini: "npm:^1.3.4"
+    proto-list: "npm:~1.2.1"
+  checksum: 10c0/39d1df18739d7088736cc75695e98d7087aea43646351b028dfabd5508d79cf6ef4c5bcd90471f52cd87ae470d1c5490c0a8c1a292fbe6ee9ff688061ea0963e
   languageName: node
   linkType: hard
 
@@ -4117,6 +4181,20 @@ __metadata:
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
   checksum: 10c0/26f364ebcdb6395f95124fda411f63137a4bfb5d3a06453f7f23dfe52502905bd84e0488172e0f9ec295fdc45f05c23d5d91baf16bd26f0fe9acd777a188dc39
+  languageName: node
+  linkType: hard
+
+"editorconfig@npm:^1.0.4":
+  version: 1.0.7
+  resolution: "editorconfig@npm:1.0.7"
+  dependencies:
+    "@one-ini/wasm": "npm:0.1.1"
+    commander: "npm:^10.0.0"
+    minimatch: "npm:^9.0.1"
+    semver: "npm:^7.5.3"
+  bin:
+    editorconfig: bin/editorconfig
+  checksum: 10c0/5b0f524ae0a406c56e2d3c690656c016e326ae5f01813dfa476ef1cea50a24e6473f1ba6f655e81ea5fde73e9db6782d83e696ec9946c8db083f5e4b6147795a
   languageName: node
   linkType: hard
 
@@ -5293,7 +5371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.3.12":
+"glob@npm:^10.3.12, glob@npm:^10.4.2":
   version: 10.5.0
   resolution: "glob@npm:10.5.0"
   dependencies:
@@ -5415,6 +5493,21 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
+  languageName: node
+  linkType: hard
+
+"happy-dom@npm:20.10.6":
+  version: 20.10.6
+  resolution: "happy-dom@npm:20.10.6"
+  dependencies:
+    "@types/node": "npm:>=20.0.0"
+    "@types/whatwg-mimetype": "npm:^3.0.2"
+    "@types/ws": "npm:^8.18.1"
+    buffer-image-size: "npm:^0.6.4"
+    entities: "npm:^7.0.1"
+    whatwg-mimetype: "npm:^3.0.0"
+    ws: "npm:^8.21.0"
+  checksum: 10c0/3cf22def886b0876b00bb04b9fbaab6c05c041fbcf0869978b6fba9eddccc45a5fc6dab14e369502be9019da43eda44ad1bee3019029ef71bb0c7db3351f4a42
   languageName: node
   linkType: hard
 
@@ -5643,7 +5736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ini@npm:~1.3.0":
+"ini@npm:^1.3.4, ini@npm:~1.3.0":
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: 10c0/ec93838d2328b619532e4f1ff05df7909760b6f66d9c9e2ded11e5c1897d6f2f9980c54dd638f88654b00919ce31e827040631eab0a3969e4d1abefa0719516a
@@ -5806,6 +5899,30 @@ __metadata:
   bin:
     jake: bin/cli.js
   checksum: 10c0/bb52f000340d4a32f1a3893b9abe56ef2b77c25da4dbf2c0c874a8159d082dddda50a5ad10e26060198bd645b928ba8dba3b362710f46a247e335321188c5a9c
+  languageName: node
+  linkType: hard
+
+"js-beautify@npm:^1.14.9":
+  version: 1.15.4
+  resolution: "js-beautify@npm:1.15.4"
+  dependencies:
+    config-chain: "npm:^1.1.13"
+    editorconfig: "npm:^1.0.4"
+    glob: "npm:^10.4.2"
+    js-cookie: "npm:^3.0.5"
+    nopt: "npm:^7.2.1"
+  bin:
+    css-beautify: js/bin/css-beautify.js
+    html-beautify: js/bin/html-beautify.js
+    js-beautify: js/bin/js-beautify.js
+  checksum: 10c0/300386f648579feacda98640742e8db50d4504bc896673af8bc784a5864585abf89ad8d1f257f2cfd4e3da951e0e4d1f027aa3c21537edb920bd498a0e27bd86
+  languageName: node
+  linkType: hard
+
+"js-cookie@npm:^3.0.5":
+  version: 3.0.8
+  resolution: "js-cookie@npm:3.0.8"
+  checksum: 10c0/421912a4a55535bda32b3059835864e1182c3af5b4516df00a060edc1fa5a53d38bb8d5a91d5d305e396206f4fd11e829f17850aa5aa8164118c04d8ebf1ff5d
   languageName: node
   linkType: hard
 
@@ -6336,7 +6453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.3, minimatch@npm:^9.0.4":
+"minimatch@npm:^9.0.1, minimatch@npm:^9.0.3, minimatch@npm:^9.0.4":
   version: 9.0.9
   resolution: "minimatch@npm:9.0.9"
   dependencies:
@@ -6616,6 +6733,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nopt@npm:^7.2.1":
+  version: 7.2.1
+  resolution: "nopt@npm:7.2.1"
+  dependencies:
+    abbrev: "npm:^2.0.0"
+  bin:
+    nopt: bin/nopt.js
+  checksum: 10c0/a069c7c736767121242037a22a788863accfa932ab285a1eb569eb8cd534b09d17206f68c37f096ae785647435e0c5a5a0a67b42ec743e481a455e5ae6a6df81
+  languageName: node
+  linkType: hard
+
 "normalize-url@npm:^6.0.1":
   version: 6.1.0
   resolution: "normalize-url@npm:6.1.0"
@@ -6888,6 +7016,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "pi-darts@workspace:."
   dependencies:
+    "@vue/test-utils": "npm:2.4.11"
+    happy-dom: "npm:20.10.6"
     prettier: "npm:3.9.5"
     vitest: "npm:4.1.10"
   languageName: unknown
@@ -7132,6 +7262,13 @@ __metadata:
     err-code: "npm:^2.0.2"
     retry: "npm:^0.12.0"
   checksum: 10c0/9c7045a1a2928094b5b9b15336dcd2a7b1c052f674550df63cc3f36cd44028e5080448175b6f6ca32b642de81150f5e7b1a98b728f15cb069f2dd60ac2616b96
+  languageName: node
+  linkType: hard
+
+"proto-list@npm:~1.2.1":
+  version: 1.2.4
+  resolution: "proto-list@npm:1.2.4"
+  checksum: 10c0/b9179f99394ec8a68b8afc817690185f3b03933f7b46ce2e22c1930dc84b60d09f5ad222beab4e59e58c6c039c7f7fcf620397235ef441a356f31f9744010e12
   languageName: node
   linkType: hard
 
@@ -8684,6 +8821,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vue-component-type-helpers@npm:^3.0.0":
+  version: 3.3.7
+  resolution: "vue-component-type-helpers@npm:3.3.7"
+  checksum: 10c0/9b3362fd9f8d94d9c326510d0b5652fbb707a5b3b1c1607307e1c0b131fdad26b53c242d6ad9a89fc800e256c2afbb37e05fecc14cf108e43fb9d7c18396326a
+  languageName: node
+  linkType: hard
+
 "vue-draggable-plus@npm:0.6.1":
   version: 0.6.1
   resolution: "vue-draggable-plus@npm:0.6.1"
@@ -8834,6 +8978,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"whatwg-mimetype@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "whatwg-mimetype@npm:3.0.0"
+  checksum: 10c0/323895a1cda29a5fb0b9ca82831d2c316309fede0365047c4c323073e3239067a304a09a1f4b123b9532641ab604203f33a1403b5ca6a62ef405bcd7a204080f
+  languageName: node
+  linkType: hard
+
 "which@npm:^2.0.1, which@npm:^2.0.2":
   version: 2.0.2
   resolution: "which@npm:2.0.2"
@@ -8904,7 +9055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:~8.21.0":
+"ws@npm:^8.21.0, ws@npm:~8.21.0":
   version: 8.21.0
   resolution: "ws@npm:8.21.0"
   peerDependencies:
