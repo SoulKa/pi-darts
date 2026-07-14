@@ -1,9 +1,11 @@
 name: release
 
-# Publishes the launcher store's app bundles. Push a version tag (e.g. v1.4.0) and this builds
-# each store app under apps/*, tars its dist, generates manifest.json, and attaches everything
-# to a GitHub Release. The Pi launcher reads that release to self-update its installed apps.
-# The Electron shell itself is packaged separately (apps-only auto-update by design).
+# Publishes a full platform release. Push a version tag (e.g. v1.4.0) and this builds the store
+# apps under apps/*, generates the OTA manifest.json + per-app tarballs, then seeds those apps
+# into the Electron launcher and packages it for the Raspberry Pi (Linux arm64: AppImage + deb).
+# Everything is attached to one GitHub Release: the Pi launcher reads its manifest.json to
+# self-update installed apps over the air, and the installers are there for flashing the shell.
+# App bundles are static web assets (arch-independent), so a single arm64 job builds it all.
 on:
   push:
     tags:
@@ -14,29 +16,52 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm # native arm64 → electron-builder emits arm64 launcher artifacts
     steps:
       - uses: actions/checkout@v4
+
+      # Enable Corepack before setup-node so its `cache: yarn` probe resolves the pinned
+      # yarn@4.17.1 instead of the runner's global Yarn 1.x (which rejects the packageManager field).
+      - run: corepack enable
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'yarn'
 
-      - run: corepack enable
+      # Full install — the launcher build needs the whole toolchain (electron, electron-builder,
+      # the allow-listed electron/node-gyp git dep) alongside @pipod/shared and the store apps.
+      - name: Install
+        run: yarn install --immutable
 
-      # Install only the store-app workspaces — keeps the Electron toolchain (and its git dep)
-      # out of the release build. Add more `@pipod/<app>` here as store apps grow.
-      - name: Install store-app workspaces
-        run: yarn workspaces focus @pipod/board @pipod/dashboard
+      # v1.4.0 -> 1.4.0 ; stamps the launcher installer version without committing a bump.
+      - name: Derive version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Build store apps
-        run: yarn workspace @pipod/board build-only && yarn workspace @pipod/dashboard build-only
+      # Builds board + dashboard and writes standalone/launcher/resources/seed so the shipped
+      # launcher boots with the current apps pre-installed.
+      - name: Seed store apps into the launcher
+        run: yarn prepare-seed
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
 
-      - name: Generate release artifacts + manifest
+      # Regenerate the OTA artifacts (per-app tarballs + manifest.json) into release/. The app
+      # dist/ dirs are already built by prepare-seed, so this only tars + hashes them.
+      - name: Generate OTA artifacts + manifest
         run: node scripts/build-manifest.mjs
         env:
           RELEASE_TAG: ${{ github.ref_name }}
           COMMIT_SHA: ${{ github.sha }}
+
+      - name: Build launcher (electron-vite)
+        run: yarn workspace @pipod/launcher build
+
+      # Invoke electron-builder directly (rather than the build:linux script) so we can inject the
+      # tag version via extraMetadata. Output lands in standalone/launcher/dist/.
+      - name: Package launcher (arm64 AppImage + deb)
+        run: yarn workspace @pipod/launcher exec electron-builder --linux --arm64 --config.extraMetadata.version=${{ steps.version.outputs.version }}
 
       - name: Publish GitHub Release
         env:
@@ -44,5 +69,7 @@ jobs:
         run: >
           gh release create "${{ github.ref_name }}"
           release/*.tar.gz release/manifest.json
+          standalone/launcher/dist/*.AppImage
+          standalone/launcher/dist/*.deb
           --title "${{ github.ref_name }}"
           --generate-notes
