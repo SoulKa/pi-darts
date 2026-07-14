@@ -11,8 +11,8 @@ services:
       DATA_DIR: /data
       CONSOLE_DIR: /app/standalone/console/dist
     volumes:
-      - pi-darts-data:/data
+      - pipod-data:/data
     restart: unless-stopped
 
 volumes:
-  pi-darts-data:
+  pipod-data:

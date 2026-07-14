@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: launcher
+appId: com.pipod.launcher
+productName: piPod
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: launcher
+  executableName: piPod
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

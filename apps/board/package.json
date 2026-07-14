@@ -1,5 +1,5 @@
 {
-  "name": "@pi-darts/board",
+  "name": "@pipod/board",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@pi-darts/shared": "*",
+    "@pipod/shared": "*",
     "socket.io-client": "4.8.3",
     "vue": "^3.5.39"
   },

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
-import type { Floor, LiveMatchState, Match, Participant } from '@pi-darts/shared'
+import type { Floor, LiveMatchState, Match, Participant } from '@pipod/shared'
 import type { TournamentDetail } from '../api'
 
 // ScheduleBoard drives the server-side scheduler through the REST client and renders match

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Match } from '@pi-darts/shared'
+import type { Match } from '@pipod/shared'
 import { computeStandings, POINTS_PER_WIN } from './standings'
 
 /** Build a completed match; override only the fields a case cares about. */

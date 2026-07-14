@@ -7,7 +7,7 @@ import type {
   StageFormat,
   StageType,
   TournamentStatus,
-} from '@pi-darts/shared'
+} from '@pipod/shared'
 
 export const tournaments = sqliteTable('tournaments', {
   id: text('id').primaryKey(),

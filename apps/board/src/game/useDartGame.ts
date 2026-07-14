@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import type { BoardGameSnapshot, BoardTournamentState } from '@pi-darts/shared'
+import type { BoardGameSnapshot, BoardTournamentState } from '@pipod/shared'
 import { suggestCheckouts, type CheckoutRoute } from './checkout'
 
 export const THROWS_PER_TURN = 3

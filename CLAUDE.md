@@ -4,19 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**pi-darts** is a Yarn 4.17.1 workspace (Node `^22.18.0 || >=24.12.0`) for a touch-first darts
-setup that runs on a Raspberry Pi:
+**piPod** is a Yarn 4.17.1 workspace (Node `^22.18.0 || >=24.12.0`) for a touch-first app
+platform that runs on a Raspberry Pi: an Electron launcher hosts a home screen of installable
+apps. The darts scorer is one such app; the transit/weather dashboard is another.
 
-- **`apps/board`** — the full-screen touchscreen scorer (Vue 3, `<script setup>`, Vite). Scored
-  entirely by tapping; player names go through an on-screen keyboard. Plays offline standalone,
-  or joins a tournament.
+- **`apps/board`** — the full-screen touchscreen darts scorer (Vue 3, `<script setup>`, Vite).
+  Scored entirely by tapping; player names go through an on-screen keyboard. Plays offline
+  standalone, or joins a tournament.
+- **`apps/dashboard`** — a kiosk dashboard app (Vue 3, Vite, UnoCSS): weather (Open-Meteo) plus
+  Stuttgart VVS transit departures. Pure static SPA, no backend.
 - **`standalone/console`** — Vue Router tournament management/overview app (Vite).
 - **`standalone/server`** — Fastify + Socket.IO tournament server on a single port; SQLite via
   Drizzle.
 - **`standalone/launcher`** — Electron shell that runs on the Pi: a home screen of installed-app
   tiles, an app store, and a settings screen; installs/updates app bundles and launches each as a
   `WebContentsView`.
-- **`packages/shared`** (`@pi-darts/shared`) — the contract boundary: domain models, Zod request
+- **`packages/shared`** (`@pipod/shared`) — the contract boundary: domain models, Zod request
   schemas, and typed Socket.IO event maps consumed by all of the above.
 
 ## Commands
@@ -40,8 +43,8 @@ yarn format           # prettier --write
 yarn format:check     # prettier --check
 yarn preview:board / yarn preview:console
 yarn start:server     # run the server without the watcher
-yarn workspace @pi-darts/server db:generate  # after changing the Drizzle schema
-yarn workspace @pi-darts/server db:check     # validate migration metadata
+yarn workspace @pipod/server db:generate  # after changing the Drizzle schema
+yarn workspace @pipod/server db:check     # validate migration metadata
 ```
 
 Testing / verification:
@@ -49,7 +52,7 @@ Testing / verification:
 - `yarn test` runs vitest from the root (it **cannot** be run from within a workspace under Yarn
   4). Run a single file with `yarn test <path/to/file.test.ts>`, or a single case with
   `yarn test -t "<test name>"`.
-- For a focused type check use the owning workspace, e.g. `yarn workspace @pi-darts/server
+- For a focused type check use the owning workspace, e.g. `yarn workspace @pipod/server
 type-check`. The **launcher's** script is `typecheck` (no hyphen) and it also has an eslint
   `lint` script; the other workspaces have no lint script.
 - Every workspace has a vitest suite (board covers the game engine + a component test). For
@@ -83,13 +86,13 @@ modules under `apps/board/src/game/`:
   **Offline play must remain independent of the tournament connection.**
 
 **Server (`standalone/server`).** Fastify REST API and Socket.IO share one port. Routes validate
-bodies with `@pi-darts/shared` schemas; services mutate SQLite through Drizzle; `realtime/`
+bodies with `@pipod/shared` schemas; services mutate SQLite through Drizzle; `realtime/`
 broadcasts snapshots, match changes, and the in-memory live-score mirror (display-only; resets
 after each reported leg). Keep REST mutations broadcasting through `realtime/hub.ts` so console
 overview state stays synchronized. Tournament scheduling math is pure under `src/engine`;
 orchestration in `services/tournaments.ts` persists round-robin groups / knockout brackets, and
 match lifecycle + bracket advancement live in `services/matches.ts`. SQLite lives at
-`${DATA_DIR:-./data}/pi-darts.db`; Drizzle applies committed migrations at startup — define table
+`${DATA_DIR:-./data}/pipod.db`; Drizzle applies committed migrations at startup — define table
 and index changes only in `src/db/schema.ts`, then generate a migration. The server can serve a
 built console SPA when `CONSOLE_DIR` is set.
 
@@ -111,7 +114,7 @@ manifest bundled under `resources/seed`.
 - **Double-out:** the finishing dart must be a double (incl. bull 50 = double-25); reaching 0 on a
   non-double busts, and leaving a score of 1 busts.
 - A dart is a "double" when `multiplier === 2`. Triple-25 is illegal.
-- The shared domain mirrors this board scoring vocabulary — reuse `@pi-darts/shared` types/schemas
+- The shared domain mirrors this board scoring vocabulary — reuse `@pipod/shared` types/schemas
   rather than duplicating payloads or event signatures in an app.
 
 ## Conventions

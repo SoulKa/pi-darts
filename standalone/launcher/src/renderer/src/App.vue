@@ -98,7 +98,7 @@ onUnmounted(() => disposers.forEach((d) => d()))
   <!-- Launcher home screen -->
   <div v-else class="home">
     <header class="home-header">
-      <div class="brand">🎯 pi-darts</div>
+      <div class="brand">piPod</div>
     </header>
 
     <main class="grid">

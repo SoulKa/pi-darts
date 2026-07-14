@@ -2,7 +2,7 @@
 // over REST, then keeps it live via socket.io (snapshots refresh detail; per-match
 // updates and live scores patch in place without a refetch).
 import { ref, shallowRef } from 'vue'
-import type { LiveMatchState, Match, Standing } from '@pi-darts/shared'
+import type { LiveMatchState, Match, Standing } from '@pipod/shared'
 import { api, type TournamentDetail } from './api'
 import { createSocket, type ConsoleSocket } from './socket'
 

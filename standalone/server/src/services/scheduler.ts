@@ -2,7 +2,7 @@
 // balancing queue lengths while never scheduling a player onto two floors at once.
 // DB-only — dispatching queued matches to boards is the realtime layer's job.
 import { eq } from 'drizzle-orm'
-import type { Tournament } from '@pi-darts/shared'
+import type { Tournament } from '@pipod/shared'
 import { db } from '../db/client'
 import { tournaments } from '../db/schema'
 import { repo } from '../repo'

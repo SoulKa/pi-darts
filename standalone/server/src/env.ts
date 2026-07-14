@@ -12,4 +12,4 @@ export const env = {
 }
 
 /** DB_FILE overrides the on-disk path (tests set it to `:memory:` for a throwaway DB). */
-export const dbPath = process.env.DB_FILE ?? resolve(env.dataDir, 'pi-darts.db')
+export const dbPath = process.env.DB_FILE ?? resolve(env.dataDir, 'pipod.db')

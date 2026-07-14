@@ -1,5 +1,5 @@
 {
-  "name": "@pi-darts/server",
+  "name": "@pipod/server",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
   "dependencies": {
     "@fastify/cors": "11.3.0",
     "@fastify/static": "9.3.0",
-    "@pi-darts/shared": "*",
+    "@pipod/shared": "*",
     "better-sqlite3": "12.11.1",
     "drizzle-orm": "0.45.2",
     "fastify": "5.10.0",

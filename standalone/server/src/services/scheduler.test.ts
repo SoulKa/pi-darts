@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { CreateStageInput, Match } from '@pi-darts/shared'
+import type { CreateStageInput, Match } from '@pipod/shared'
 import { resetDb } from '../test/db'
 import { repo } from '../repo'
 import {
