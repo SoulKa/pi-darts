@@ -161,23 +161,27 @@ onUnmounted(() => disposers.forEach((d) => d()))
         class="tile"
         @click="launch(app.id, app.query)"
       >
-        <img class="tile-icon" :src="`piapp://${app.id}/${app.icon}`" alt="" />
+        <span class="tile-icon">
+          <img class="tile-img" :src="`piapp://${app.id}/${app.icon}`" alt="" />
+        </span>
         <span class="tile-name">{{ app.name ?? nameOf(app.id) }}</span>
-      </button>
-
-      <!-- Built-in Store/Settings tiles: no piapp icon, so a glyph stands in. Settings always last. -->
-      <button class="tile" @click="view = 'store'">
-        <span class="tile-icon tile-icon--glyph">🛍️</span>
-        <span class="tile-name">Store</span>
-      </button>
-
-      <button class="tile" @click="view = 'settings'">
-        <span class="tile-icon tile-icon--glyph">⚙️</span>
-        <span class="tile-name">Settings</span>
       </button>
 
       <p v-if="!installed.length" class="empty">No apps installed yet — open the Store.</p>
     </main>
+
+    <!-- Dock: the built-in system apps live on a glass tray, like the iPod Touch home dock. -->
+    <footer class="dock">
+      <button class="tile" @click="view = 'store'">
+        <span class="tile-icon tile-icon--glyph tile-icon--store">🛍️</span>
+        <span class="tile-name">Store</span>
+      </button>
+
+      <button class="tile" @click="view = 'settings'">
+        <span class="tile-icon tile-icon--glyph tile-icon--settings">⚙️</span>
+        <span class="tile-name">Settings</span>
+      </button>
+    </footer>
 
     <div class="toasts">
       <div v-for="t in toasts" :key="t.id" class="toast">{{ t.text }}</div>
@@ -317,27 +321,70 @@ onUnmounted(() => disposers.forEach((d) => d()))
 }
 
 .tile-icon {
+  position: relative;
   width: 104px;
   height: 104px;
-  border-radius: 24px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  /* ~22% radius is the classic iOS/iPod Touch rounded-square proportion. */
+  border-radius: 23px;
+  overflow: hidden;
+  /* Drop shadow to lift off the wallpaper, plus a hairline rim so pale icons keep an edge. */
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: filter 0.12s ease;
 }
 
-/* Built-in tiles have no image asset: render a glyph on the same rounded-square canvas. */
+.tile-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * The signature iPod Touch look: a glass reflection over the top of every icon. Apple applied
+ * this automatically to all app art. The lower edge bulges down (50% horizontal / 20px vertical
+ * corner radii meet at the center) to read as a curved highlight rather than a flat band.
+ */
+.tile-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
+  border-radius: 23px 23px 50% 50% / 23px 23px 20px 20px;
+  pointer-events: none;
+}
+
+/* Tapping an icon dims it briefly — the Springboard press feedback before an app opens. */
+.tile:active .tile-icon {
+  filter: brightness(0.82);
+}
+
+/* Built-in tiles have no image asset: render a glyph on a glossy colored canvas. */
 .tile-icon--glyph {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 52px;
   line-height: 1;
-  background: var(--panel-2);
+}
+
+.tile-icon--store {
+  background: linear-gradient(180deg, #22d3ee, #0e7490);
+}
+
+.tile-icon--settings {
+  background: linear-gradient(180deg, #64748b, #334155);
 }
 
 .tile-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   text-align: center;
-  color: var(--text);
+  /* White with a soft shadow stays legible over any wallpaper — the iOS label treatment. */
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -346,6 +393,23 @@ onUnmounted(() => disposers.forEach((d) => d()))
 
 .empty {
   color: var(--muted);
+}
+
+/*
+ * Home dock: a frosted glass shelf spanning the bottom edge for the system apps. The blur +
+ * top highlight give it the reflective tray look of the iPod Touch dock.
+ */
+.dock {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  /* span the full bottom edge, escaping the home's 20px padding */
+  margin: 0 -20px -20px;
+  padding: 16px 20px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .toasts {
